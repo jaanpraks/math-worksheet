@@ -155,7 +155,8 @@ When a formula ends with `=`, long vector/matrix answers (more than 12 entries) 
 | --- | --- |
 | `src/main.js` | DOM regions, editing, dragging/resizing, clipboard and file controls |
 | `src/engine.js` | ordered shared-scope evaluation and plot sampling |
-| `src/model.js` | region defaults, orbital starter and versioned JSON validation |
+| `src/model.js` | region defaults, starter loading and versioned JSON validation |
+| `src/example.json` | default worksheet in the same format as Save JSON / Load JSON |
 | `src/plot.js` | Canvas 2D rendering |
 | `src/plot-view.js` | viewport scales, fitting, ticks and zoom geometry |
 | `src/plot-ui.js` | plot settings, labels, legends, resize and wheel interaction |
@@ -176,4 +177,7 @@ Library references: [Vite](https://vite.dev/guide/), [Math.js expressions](https
 
 
 
+
+
+To change the default worksheet, create it in the app, choose **Save JSON**, and replace src/example.json with the downloaded file. Commit and publish the change. The example is validated using the same loader as **Load JSON**.
 

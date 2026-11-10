@@ -1,3 +1,4 @@
+import example from "./example.json" with { type: "json" };
 import {validateSections} from './sections.js';
 import {markerShapes} from './plot-styles.js';
 export const imagePattern = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=\r\n]+$/;
@@ -6,16 +7,7 @@ export function region(type, x = 60, y = 60) {
     ...(type === 'math' ? { latex: '1+1', source: '1+1' } : type === 'section'?{x:0,width:1300,height:250,title:'Solution',collapsed:false}: type === 'text' ? { text: 'Write a note…' } : type === 'plot' ? { series: 'sin(x)\ncos(x)', min: '0', max: '6.28',title:'',xLabel:'',yLabel:'',legendLabels:'',showLegend:false,equalScale:false } : type==='slider'?{name:'a',value:'1',min:'0',max:'10',step:'0.1',unit:''}:type==='radio'?{name:'b',options:'1\n2\n3',choice:'0',unit:''}:{ src: '', alt: 'Pasted image' }) };
 }
 export function starter() {
-  const note = { ...region('text', 100, 40), width: 960, height: 130, text: '# A circular orbit\n\nUse SI units: metres, seconds and m³/s². **Edit a value** and watch the worksheet update.' };
-  return [note, ...[
-    ['mu=3.986004418*10^14', '\\mu=3.986004418\\cdot10^{14}'],
-    ['r=6371000+400000', 'r=6371000+400000'],
-    ['v=sqrt(mu/r)=', 'v=\\sqrt{\\mu/r}='],
-    ['T=2*pi*sqrt(r^3/mu)=', 'T=2\\pi\\sqrt{r^3/\\mu}=']
-  ].map(([source, latex], i) => ({ ...region('math', 100, 150 + i * 52), source, latex })),
-  { ...region('text',100,370), width:460, text:'The circular speed and orbital period follow from the radius and gravitational parameter above.' },
-  { ...region('plot', 640, 150), width:520, height:260, series: 'sqrt(mu/x)', min: '6500000', max: '20000000' },
-  { ...region('text', 640, 440), width:520, text: 'Orbital speed vs radius\nOne function of x per line, or X-vector ; Y-vector. Example: [1,2,3] ; [2,4,3]. Plot inputs use Math.js syntax.' }];
+  return deserialize(JSON.stringify(example));
 }
 export function serialize(regions) { return JSON.stringify({ version: 1, regions }, null, 2); }
 export function deserialize(text) {
