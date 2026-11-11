@@ -10,11 +10,11 @@ test('slider interaction updates equations and a graph; range and step are edita
   await input.evaluate(el=>{el.value='3';el.dispatchEvent(new Event('input',{bubbles:true}));});
   await expect(eq).toContainText('9');expect(await plot.evaluate(el=>el.toDataURL())).not.toBe(before);
   await input.focus();await page.keyboard.press('ArrowRight');await expect(eq).toContainText('12.25');
-  await page.locator('.slider').hover();await page.getByLabel('Variable settings',{exact:true}).click();
+  await page.locator('.slider').hover();await page.locator('.slider').getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Maximum',{exact:true}).fill('10');await page.getByLabel('Step Δ',{exact:true}).fill('1');
   await expect(input).toHaveAttribute('max','10');await expect(input).toHaveAttribute('step','1');
   await page.getByLabel('Current value',{exact:true}).fill('6');await expect(eq).toContainText('36');
-  await page.getByLabel('Variable settings',{exact:true}).click();
+  await page.locator('.slider').getByLabel('Field properties',{exact:true}).click();
   await page.screenshot({path:'test-results/slider-preview.png'});expect(errors).toEqual([]);
 });
 test('radio options define a variable, recalculate, and persist selected values and settings',async({page})=>{
@@ -26,22 +26,25 @@ test('radio options define a variable, recalculate, and persist selected values 
   await page.reload();await page.locator('#file').setInputFiles(await download.path());
   await expect(page.getByRole('radio',{name:'b = 2',exact:true})).toBeChecked();await expect(page.getByRole('slider')).toHaveValue('4');
   await expect(page.locator('[data-id="eq"] output')).toContainText('8');
-  await page.locator('.radio').hover();await page.locator('.radio').getByLabel('Variable settings',{exact:true}).click();
+  await page.locator('.radio').hover();await page.locator('.radio').getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Options — one expression per line',{exact:true}).fill('pi/2\npi');
-  await page.locator('.radio').getByLabel('Variable settings',{exact:true}).click();
+  await page.locator('.radio').getByLabel('Field properties',{exact:true}).click();
   await page.getByRole('radio',{name:'b = pi',exact:true}).check();
   await expect(page.locator('[data-id="eq"] output')).toContainText('12.5663706');
   await page.screenshot({path:'test-results/radio-preview.png'});
 });
 test('controls can be added from the toolbar and invalid settings get an error outline',async({page})=>{
   await load(page,[]);await page.getByRole('button',{name:'+ Slider',exact:true}).click();await expect(page.locator('.slider')).toHaveCount(1);
-  await page.getByRole('button',{name:'+ Options',exact:true}).click();await expect(page.locator('.radio')).toHaveCount(1);
-  await page.locator('.slider').hover();await page.locator('.slider').getByLabel('Variable settings',{exact:true}).click();
+  const box=await page.locator('#canvas').boundingBox();await page.mouse.move(box.x+600,box.y+350);await page.getByRole('button',{name:'+ Options',exact:true}).click();await expect(page.locator('.radio')).toHaveCount(1);
+  await page.locator('.slider').hover();await page.locator('.slider').getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Minimum',{exact:true}).fill('20');await expect(page.locator('.slider')).toHaveClass(/has-error/);
   await page.getByLabel('Minimum',{exact:true}).fill('0');await expect(page.locator('.slider')).not.toHaveClass(/has-error/);
   await page.locator('.slider').getByLabel('Unit (optional)',{exact:true}).fill('kg');
   await expect.poll(()=>page.locator('.slider math-field[aria-label="Variable value"]').evaluate(el=>el.value)).toContain('\\mathrm{kg}');
   await expect.poll(()=>page.locator('.slider math-field[aria-label="Variable range"]').evaluate(el=>el.value)).toContain('\\mathrm{kg}');
 });
+
+
+
 
 

@@ -45,7 +45,7 @@ export function selectionTool(canvas, { elements, create, changed }) {
       marquee.remove();if(canvas.hasPointerCapture(event.pointerId))canvas.releasePointerCapture(event.pointerId);
       if(e.type==='pointercancel'){selected.clear();for(const id of original)selected.add(id);refresh();return;}
       if(dragged){suppressClick=true;refresh();}
-      else if(!additive)create(Math.max(24,start.x),Math.max(24,start.y));
+      else if(!additive)create(Math.max(0,start.x),Math.max(0,start.y));
     };
     canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',end);
   },true);

@@ -36,13 +36,15 @@ export function unitSource(latex) {
 
 export function requireAcceptedUnits(source, scope) {
   const tree = parse(source);
-  const parameters = new Set();
-  tree.traverse(node => { if (node.isFunctionAssignmentNode) for (const name of node.params) parameters.add(name); });
-  tree.traverse((node, path, parent) => {
-    if (!node.isSymbolNode || !isUnit(node.name) || scope.has(node.name) || parameters.has(node.name)) return;
-    if (parent?.isAssignmentNode && path === 'object') return;
-    throw Error(`Press Tab to accept ${node.name} as a unit, or define it as a variable above.`);
-  });
+  function visit(node,path,parent,parameters){
+    if(node.isFunctionNode && ['sumOver','productOver'].includes(node.fn.name) && node.args.length===4 && node.args[1].isSymbolNode){
+      const local=new Set([...parameters,node.args[1].name]);visit(node.args[0],'args[0]',node,local);visit(node.args[2],'args[2]',node,parameters);visit(node.args[3],'args[3]',node,parameters);return;
+    }
+    if(node.isFunctionAssignmentNode)parameters=new Set([...parameters,...node.params]);
+    if(node.isSymbolNode && isUnit(node.name) && !scope.has(node.name) && !parameters.has(node.name) && !(parent?.isAssignmentNode && path==='object'))throw Error(`Press Tab to accept ${node.name} as a unit, or define it as a variable above.`);
+    node.forEach((child,childPath)=>visit(child,childPath,node,parameters));
+  }
+  visit(tree,'',undefined,new Set());
 }
 
 export function unitResult(value) {

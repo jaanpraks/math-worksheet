@@ -1,4 +1,5 @@
-import { evaluate, format } from 'mathjs';
+import { format } from 'mathjs';
+import { evaluate } from './math-runtime.js';
 import { requireAcceptedUnits, unitResult } from './units.js';
 import { evaluateControl } from './control-values.js';
 import { evaluationSource } from './equations.js';
@@ -20,6 +21,7 @@ export function worksheet(regions) {
     const local = new Map(scope);
     try {
       if (region.type === 'math') {
+        if(region.conversionError && !region.displayOnly)throw Error(region.conversionError);
         if (region.displayOnly || !region.source.trim()) { results.set(region.id, { text: '' }); continue; }
         // A trailing equals sign asks for the value; interior '=' still assigns.
         let value;

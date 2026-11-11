@@ -21,7 +21,7 @@ import {mountFullscreen} from './fullscreen.js';
 import {statements} from './groups.js';
 import {mountInformation} from './information.js';
 import {mountPopovers,positionPopovers} from './popovers.js';
-import {applyAppearance,mountProperties} from './properties.js';
+import {applyAppearance,mountProperties,tabProperties,fieldNames} from './properties.js';
 
 MathfieldElement.fontsDirectory = `${import.meta.env.BASE_URL}fonts`;
 const canvas = document.querySelector('#canvas');
@@ -103,8 +103,12 @@ function cleanupEmpty(forceId) {
 }
 canvas.addEventListener('focusout',()=>setTimeout(()=>{cleanupEmpty();paintCanvasCaret();},0));
 canvas.addEventListener('pointerdown',event=>{
-  const box=canvas.getBoundingClientRect();pasteAnchor={x:Math.max(24,event.clientX-box.left),y:sheetY(regions,Math.max(24,event.clientY-box.top))};
+  const box=canvas.getBoundingClientRect();pasteAnchor={x:Math.max(0,event.clientX-box.left),y:sheetY(regions,Math.max(0,event.clientY-box.top))};
 },true);
+canvas.addEventListener('pointermove',event=>{
+  if(event.buttons || event.target.closest('.region-head,.move-handle'))return;
+  const box=canvas.getBoundingClientRect();pasteAnchor={x:Math.max(0,event.clientX-box.left),y:sheetY(regions,Math.max(0,event.clientY-box.top))};
+});
 function recalculate() {
   const results = worksheet(regions);
   for (const [id, result] of results) {
@@ -178,7 +182,12 @@ function render(focusId, caret) {
     const title = document.createElement('span'); title.textContent = '⠿'; title.title = 'Drag to move';
     const remove = document.createElement('button'); remove.textContent = '×'; remove.setAttribute('aria-label', `Delete ${r.type} region`);
     remove.onclick = () => removeRegions(new Set([r.id]));
-    head.append(title,remove);mountInformation(r,head,remove,recordHistory);mountProperties(r,el,head,remove,recordHistory); el.append(head); pointerMove(head,el,r);
+    title.className='move-handle';
+    el.addEventListener('dblclick',event=>{if(r.hidden && !event.ctrlKey && !event.metaKey){r.hidden=false;render();}});
+    head.append(remove);mountInformation(r,head,remove,recordHistory);mountProperties(r,el,head,remove,recordHistory); el.append(title,head); pointerMove(title,el,r);
+    for(const side of ['top','right','bottom','left']){
+      const edge=document.createElement('div');edge.className=`move-edge move-edge-${side}`;edge.setAttribute('aria-hidden','true');el.append(edge);pointerMove(edge,el,r);
+    }
     const body = document.createElement('div'); body.className = 'region-body'; el.append(body);
     const output = document.createElement('output'); const view = { output,element:el }; views.set(r.id,view);
     if(r.type==='section') {
@@ -198,10 +207,10 @@ function render(focusId, caret) {
       view.vectorToggle=document.createElement('button');view.vectorToggle.type='button';view.vectorToggle.className='vector-toggle';view.vectorToggle.hidden=true;
       view.vectorToggle.onclick=()=>{r.showVector=!r.showVector;showValues.checked=!!r.showVector;recalculate();};
       line.append(field,view.result,view.vectorToggle); body.append(line,field.unitHint,output);
-      const details = document.createElement('details'), summary = document.createElement('summary'); summary.textContent = 'ƒ'; summary.title='Edit Math.js expression'; summary.setAttribute('aria-label','Edit Math.js expression'); details.append(summary);
+      const details = document.createElement('details'), summary = document.createElement('summary'); summary.textContent = '⚙'; summary.title='Edit Math.js expression'; summary.setAttribute('aria-label','Edit Math.js expression'); details.append(summary);
       const settings=document.createElement('div'); settings.className='region-settings'; details.append(settings);
       const raw = input(settings,r.source,'Math.js expression', value => {
-        r.source=value;r.unitMode='raw';r.latex=sourceToLatex(value);
+        r.source=value;r.unitMode='raw';delete r.conversionError;r.latex=sourceToLatex(value);
         field.setValue(r.latex,{silenceNotifications:true});updateFieldChrome(r,el);schedule();
       });
       const valuesLabel=document.createElement('label'),showValues=document.createElement('input');showValues.type='checkbox';showValues.checked=!!r.showVector;
@@ -221,15 +230,18 @@ function render(focusId, caret) {
       }));body.append(output);
     }
     else {Object.assign(view,mountPlot(r,body,head,remove,recalculate));body.append(output);}
-    if(r.type==='slider'||r.type==='radio'){
-      const grip = document.createElement('div'); grip.className = 'resize'; grip.title = 'Drag to resize'; grip.textContent='↔'; head.insertBefore(grip,remove); pointerMove(grip,el,r,true);
-    }
     canvas.append(el);
     if(r.type!=='section') {
       const hide=document.createElement('button');hide.type='button';hide.textContent=r.hidden?'□':'−';hide.setAttribute('aria-label',r.hidden?'Show field':'Hide field');hide.title=r.hidden?'Show field':'Hide field';hide.onclick=()=>{r.hidden=!r.hidden;render();};head.insertBefore(hide,remove);
-      const placeholder=document.createElement('input');placeholder.type='text';placeholder.className='hidden-placeholder';placeholder.value=r.hiddenLabel ?? `Hidden ${r.type}`;placeholder.placeholder=`Hidden ${r.type}`;placeholder.maxLength=120;placeholder.setAttribute('aria-label','Hidden field label');placeholder.addEventListener('input',()=>{r.hiddenLabel=placeholder.value;recordHistory();});el.append(placeholder);
+      const placeholder=document.createElement('input');placeholder.type='text';placeholder.className='hidden-placeholder';placeholder.value=r.hiddenLabel ?? fieldNames[r.type];placeholder.maxLength=120;placeholder.setAttribute('aria-label','Hidden field label');placeholder.addEventListener('input',()=>{r.hiddenLabel=placeholder.value;recordHistory();});el.append(placeholder);
     }
-    if(r.type==='text'||r.type==='plot'||r.type==='image'||r.type==='section') {
+    // Keep shared actions on the first row; type-specific tools and decoration follow.
+    const info=head.querySelector('.field-info'),properties=head.querySelector('.field-properties');
+    const toggle=r.type==='section'?body.querySelector('.section-bar button'):head.querySelector('button[aria-label="Hide field"],button[aria-label="Show field"]');
+    const tools=[...head.children].filter(child=>![title,info,toggle,remove,properties].includes(child));
+    tabProperties(r,el,properties,tools,recordHistory);
+    head.replaceChildren(properties,info,toggle,remove);
+    if(r.type==='text'||r.type==='plot'||r.type==='image'||r.type==='section'||r.type==='slider'||r.type==='radio') {
       const corner=document.createElement('div');corner.className='resize corner-resize';corner.title=`Resize ${r.type} field`;corner.setAttribute('aria-label',corner.title);el.append(corner);pointerMove(corner,el,r,true);
     }
   }
@@ -312,11 +324,10 @@ canvas.addEventListener('keydown', event => {
   event.preventDefault(); createMath(canvasPoint?.x ?? viewport.scrollLeft+60,canvasPoint?.y ?? sheetY(regions,viewport.scrollTop+60),event.key);
 });
 function add(type) {
-  if (type === 'math') return createMath(viewport.scrollLeft+80,sheetY(regions,viewport.scrollTop+80));
-  const r = region(type, viewport.scrollLeft+80,sheetY(regions,viewport.scrollTop+80));
+  const point=pasteAnchor;
+  if (type === 'math') return createMath(point.x,point.y);
+  const r = region(type, point.x,point.y);
   if(type==='slider'||type==='radio') {
-    r.x=canvasPoint?.x ?? viewport.scrollLeft+100;
-    r.y=canvasPoint?.y ?? Math.max(viewport.scrollTop+100,...regions.map(item=>item.y+(views.get(item.id)?.element.offsetHeight || 0)+40));
     const base=r.name;let suffix=1;
     while(regions.some(item=>item.name===r.name || item.source?.match(new RegExp(`^\\s*${r.name}\\s*=`))))r.name=base+(++suffix);
   }
@@ -326,7 +337,7 @@ function add(type) {
 for (const type of ['math','text','plot','slider','radio']) document.querySelector(`#add-${type}`).onclick = () => add(type);
 document.querySelector('#add-section').onclick=()=>{
   const selected=regions.filter(r=>selection.selected.has(r.id) && r.type!=='section' && !hiddenBySection(regions,r));
-  const y=selected.length?Math.min(...selected.map(r=>r.y)):sheetY(regions,viewport.scrollTop+100);
+  const y=selected.length?Math.min(...selected.map(r=>r.y)):pasteAnchor.y;
   if(sections(regions).some(s=>y>=s.y && y<s.y+s.height)){message('Sections cannot nest. Choose fields outside an existing section.');return;}
   const section=region('section',0,y),before=regions.map(r=>({r,y:r.y}));
   if(selected.length)section.height=Math.max(100,...selected.map(r=>r.y+Math.max(views.get(r.id).element.offsetHeight,26)-y+56));
@@ -361,7 +372,7 @@ document.addEventListener('paste', async event => {
   const r=regions.find(r=>r.id===activeRegion?.dataset.id);
   if(images.length) {
     event.preventDefault();event.stopImmediatePropagation();
-    const position=r?{x:r.x,y:r.y}: {...pasteAnchor};
+    const position={...pasteAnchor};
     try { for(const [i,item] of images.entries())await addImage(item.getAsFile(),i*30,position); }catch(error){message(error.message);}
     return;
   }

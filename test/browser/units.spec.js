@@ -6,7 +6,7 @@ async function requestAnswer(page) {
   await field.evaluate(el=>{el.position=el.lastOffset;});await page.keyboard.type('=');
 }
 async function equation(page) {
-  await page.locator('#canvas').click({position:{x:1030,y:80}});
+  const canvas=await page.locator('#canvas').boundingBox();await page.mouse.move(canvas.x+1030,canvas.y+80);await page.getByRole('button',{name:'+ Math',exact:true}).click();
   const field=page.locator('.expression').last(); await expect(field).toBeFocused(); return field;
 }
 test('5kg offers a unit, Tab accepts it, colors it, and persists its meaning',async({page})=>{
@@ -85,4 +85,5 @@ test('units may be squared before or after Tab acceptance',async({page})=>{
   await requestAnswer(page);
   await expect(page.locator('.math').last().locator('output')).toContainText('5 m / s^2');
 });
+
 

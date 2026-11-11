@@ -3,19 +3,32 @@ import { isUnit, unitToken, unitSource } from './units.js';
 import { squareMatrices,configureMatrixMenu } from './matrices.js';
 import { requestsResult } from './equations.js';
 import {groupRows,groupLatex,atStatementLevel} from './groups.js';
+import {compactIdentifiers} from './expressions.js';
+import {functionShortcuts,normalizeFunctionCalls} from './function-mappings.js';
+import {formatVisualCalls} from './visual-call-format.js';
 
 // Capture an actual space key/paste, not whitespace added by the ASCII exporter.
 export function mathEditor(r, { change, toText, nextLine, previousLine }) {
   const field = new MathfieldElement();
   field.className = 'expression';
-  const initial=squareMatrices(r.latex);
-  if(initial!==r.latex){r.latex=initial;if(r.unitMode!=='raw')r.source=unitSource(initial);}
+  const initial=compactIdentifiers(normalizeFunctionCalls(squareMatrices(r.latex)));
+  const rebuildSource=r.unitMode==='explicit' || (initial!==r.latex && r.unitMode!=='raw');
+  r.latex=initial;
   field.value = r.latex;
+  function updateSource(){
+    try{r.source=unitSource(r.latex);delete r.conversionError;}
+    catch(error){r.source='';r.conversionError=error.message;}
+    r.unitMode='explicit';
+  }
+  if(rebuildSource)updateSource();
   field.setAttribute('aria-label', 'Math expression');
   field.mathVirtualKeyboardPolicy = 'manual';
   field.smartMode = false;
+  let templates;
   field.addEventListener('mount',()=>{
-    field.inlineShortcuts={...field.inlineShortcuts,fft:'\\operatorname{fft}',ifft:'\\operatorname{ifft}'};
+    templates={...field.inlineShortcuts,...functionShortcuts};
+    field.inlineShortcuts=Object.fromEntries(Object.entries(templates).filter(([name])=>!/[A-Za-z]/.test(name)));
+    field.onInlineShortcut=()=>'';
     configureMatrixMenu(field);
   });
   const hint = document.createElement('span'); hint.className = 'unit-hint'; hint.hidden = true;
@@ -41,15 +54,26 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
     hint.textContent = match ? `${match.name} — Tab to accept unit` : '';
   }
   const changed = () => {
-    const squared=squareMatrices(field.value);
-    if(squared!==field.value){const selection=field.selection;field.setValue(squared,{silenceNotifications:true});field.selection=selection;}
+    const normalized=normalizeFunctionCalls(squareMatrices(field.value)),squared=compactIdentifiers(normalized);
+    if(squared!==field.value){
+      const selection=field.selection,last=field.lastOffset,adjust=normalized!==field.value;
+      field.setValue(squared,{silenceNotifications:true});const delta=adjust?field.lastOffset-last:0;
+      field.selection={...selection,ranges:selection.ranges.map(([a,b])=>[Math.max(0,a+delta),Math.max(0,b+delta)])};
+    }
     r.latex = field.value;
-    r.source = unitSource(r.latex); r.unitMode='explicit';
+    updateSource();
+    if(requestsResult(r.source) && field.position===field.lastOffset && commitDisplay())return;
     change(); suggest();
   };
   field.addEventListener('input', changed);
   field.addEventListener('selection-change', suggest);
-  field.addEventListener('blur', () => { hint.hidden=true; });
+  function commitDisplay(){
+    const formatted=formatVisualCalls(field.value);if(formatted===field.value)return false;
+    field.setValue(formatted,{silenceNotifications:true});field.position=field.lastOffset;r.latex=field.value;updateSource();change();
+    return true;
+  }
+  field.addEventListener('blur', () => { hint.hidden=true;commitDisplay(); });
+  field.addEventListener('keyup',event=>{if((event.key===')' || event.key==='=') && field.position===field.lastOffset)commitDisplay();},true);
   const plainText = latex => unitSource(latex).replace(/unit\("([A-Za-z]+)"\)/g, '$1').replace(/\s+/g, '');
   const asText = () => plainText(field.value);
   function insertText(text) {
@@ -74,8 +98,15 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
       // Use the visible editor state when closing a newly emptied field.
       r.latex='';r.source='';previousLine();
     } else if (event.key === 'Tab' && !event.shiftKey) {
+      if(field.getElementInfo(field.position)?.data?.['worksheet-function']==='1')return;
       const match = candidate();
-      if (!match) return;
+      if (!match) {
+        const end=field.position;let found;
+        for(let start=end-1;start>=Math.max(0,end-64);start--){const name=field.getValue(start,end,'latex');if(!/^[A-Za-z][A-Za-z0-9]*$/.test(name))break;found={name,start};}
+        const shortcut=found && templates?.[found.name],value=typeof shortcut==='string'?shortcut:shortcut?.value;
+        if(!value)return;
+        event.preventDefault();event.stopImmediatePropagation();field.selection={ranges:[[found.start,end]],direction:'forward'};field.insert(value,{selectionMode:'placeholder',focus:true});changed();return;
+      }
       event.preventDefault(); event.stopImmediatePropagation();
       const before = field.getValue(Math.max(0,match.start-1), match.start, 'latex').trim();
       const prefix = field.getValue(0, match.start, 'latex').trim();

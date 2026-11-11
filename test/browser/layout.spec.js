@@ -9,10 +9,10 @@ test('controls sit right of the first line and hover reveals a faint outline wit
   expect(Math.abs(head.y-before.y)).toBeLessThan(2);
   expect(await equation.evaluate(el=>getComputedStyle(el).outlineColor)).not.toBe('rgba(0, 0, 0, 0)');
   expect((await equation.boundingBox()).height).toBe(before.height);
-  await page.getByLabel('Edit Math.js expression',{exact:true}).first().click();
+  await page.getByLabel('Field properties',{exact:true}).first().click();
   await expect(equation.locator('details:has(> summary[aria-label="Edit Math.js expression"]) > .region-settings')).toBeVisible();
   expect((await equation.boundingBox()).height).toBe(before.height);
-  await page.getByLabel('Edit Math.js expression',{exact:true}).first().click();
+  await page.getByLabel('Field properties',{exact:true}).first().click();
   const image=page.locator('.plot'); await image.hover();
   const plotBox=await image.boundingBox();
   await expect(image.locator('.region-head .resize')).toHaveCount(0);
@@ -35,4 +35,5 @@ test('a short note and equation can occupy a compact book-like line',async({page
   expect(Math.abs((await note.boundingBox()).y-(await equation.boundingBox()).y)).toBeLessThan(2);
   await page.screenshot({path:'test-results/compact-layout.png'});
 });
+
 

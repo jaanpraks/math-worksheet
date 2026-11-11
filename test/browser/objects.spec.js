@@ -19,7 +19,7 @@ test('Ctrl-click and a marquee select multiple objects; dragging moves the group
   const a=page.locator('[data-id="a"]'),b=page.locator('[data-id="b"]'),c=page.locator('[data-id="c"]');
   await a.click({modifiers:['Control']});await b.click({modifiers:['Control']});
   await expect(page.locator('.selected')).toHaveCount(2);
-  const first=await geometry(a),second=await geometry(b),other=await geometry(c),handle=await a.locator('.region-head').boundingBox();
+  const first=await geometry(a),second=await geometry(b),other=await geometry(c),handle=await a.locator('.move-handle').boundingBox();
   await page.mouse.move(handle.x+8,handle.y+10);await page.mouse.down();await page.mouse.move(handle.x+88,handle.y+70,{steps:8});await page.mouse.up();
   expect(await geometry(a)).toEqual({x:first.x+80,y:first.y+60});expect(await geometry(b)).toEqual({x:second.x+80,y:second.y+60});expect(await geometry(c)).toEqual(other);
   await page.keyboard.press('Escape');await expect(page.locator('.selected')).toHaveCount(0);
@@ -50,4 +50,5 @@ test('Enter on a selected note inserts a definition after it, while Markdown kee
   await page.keyboard.press('Enter');await page.keyboard.type('Second line');
   await expect(page.locator('[data-id="a"] textarea')).toHaveValue('A note\nSecond line');
 });
+
 

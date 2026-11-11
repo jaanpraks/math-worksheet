@@ -1,4 +1,5 @@
-import { evaluate, unit } from 'mathjs';
+import { unit } from 'mathjs';
+import { evaluate } from './math-runtime.js';
 
 function number(expression,scope,label) {
   if(!expression.trim())throw Error(`${label} is required.`);

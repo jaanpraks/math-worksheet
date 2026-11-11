@@ -13,11 +13,11 @@ test('plot resizing expands coordinates while preserving scale and wheel modifie
   const both=next;await wheel(page);await expect.poll(async()=> (await view(page)).xScale).toBeLessThan(both.xScale);expect((await view(page)).yScale).toBeLessThan(both.yScale);
 });
 test('equal scales, left legend, title and axis labels are configurable and saved',async({page})=>{
-  await load(page);await page.locator('.plot').hover();await page.getByLabel('Plot settings',{exact:true}).click();
+  await load(page);await page.locator('.plot').hover();await page.getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Plot title',{exact:true}).fill('Harmonic functions');await page.getByLabel('X-axis label',{exact:true}).fill('Angle (rad)');await page.getByLabel('Y-axis label',{exact:true}).fill('Amplitude');
   await page.getByLabel('Legend on left',{exact:true}).check();await page.getByLabel('Legend names — one per series',{exact:true}).fill('Sine\nCosine');await page.getByLabel('Equal axis scales',{exact:true}).check();
   await page.getByRole('button',{name:'Fit data',exact:true}).click();
-  await page.getByLabel('Plot settings',{exact:true}).click();await expect.poll(async()=>{const v=await view(page);return v.xScale===v.yScale;}).toBe(true);
+  await page.getByLabel('Field properties',{exact:true}).click();await expect.poll(async()=>{const v=await view(page);return v.xScale===v.yScale;}).toBe(true);
   await expect(page.locator('.plot-legend')).toContainText('Sine');const legend=await page.locator('.plot-legend').boundingBox(),canvas=await page.locator('.plot canvas').boundingBox();expect(legend.x+legend.width).toBeLessThanOrEqual(canvas.x+1);
   const saved=await view(page),pending=page.waitForEvent('download');await page.getByRole('button',{name:'Save JSON'}).click();const download=await pending;
   await page.reload();await page.locator('#file').setInputFiles(await download.path());await expect(page.locator('.plot-legend')).toContainText('Cosine');
@@ -32,4 +32,5 @@ test('long vector answers can be hidden without affecting plot data',async({page
   await page.getByRole('button',{name:'Hide values',exact:true}).click();await expect(result).toHaveAttribute('data-collapsed','true');
   await expect(page.locator('.plot')).not.toHaveClass(/has-error/);
 });
+
 

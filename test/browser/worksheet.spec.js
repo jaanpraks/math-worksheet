@@ -34,7 +34,7 @@ test('edit, reorder, save/load, plot, and paste an independent image', async ({ 
   await expect(page.locator('.math output').nth(2)).toContainText('7546.053');
   await page.getByRole('button',{name:'Delete image region'}).click();
   await page.locator('.plot').hover();
-  await page.getByLabel('Plot settings',{exact:true}).click();
+  await page.getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Plot series: function of x or X ; Y',{exact:true}).fill('[1,2,3] ; [4,2,6]\nx/1000000');
   await expect(page.locator('.plot output')).toBeEmpty();
   await page.waitForTimeout(300);
@@ -44,4 +44,5 @@ test('edit, reorder, save/load, plot, and paste an independent image', async ({ 
   await page.screenshot({path:'test-results/worksheet-preview.png',fullPage:true});
   expect(errors).toEqual([]);
 });
+
 

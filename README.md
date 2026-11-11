@@ -30,10 +30,10 @@ The browser test uses installed Microsoft Edge on Windows. On another platform, 
 
 - Click blank paper and type to create an equation at that position. Press Space to convert the writing into a text note, retaining what you typed; subsequent spaces remain normal text. Pasting words containing whitespace also creates text. Press Enter in an equation to begin a new equation below it. The toolbar remains available for explicit region types.
 - Equations evaluate automatically, but answers appear only when you add a final `=`. For example, `a=3` silently defines a variable, `a*2` calculates silently, and `a*2=` displays `6` after the equals sign. Interior equals signs still assign variables. Errors in evaluated fields remain visible even without a final `=`. Equations and answers share the same 20 px math font.
-- For a pedagogical formula, open **ƒ** and check **Display only — do not evaluate**. The formula remains editable mathematical notation but never executes, defines variables or reports evaluation errors, even if it ends with `=`. Uncheck the option to resume evaluation. The mode is preserved in JSON and Undo/Redo.
+- For a pedagogical formula, open **⋮ → Settings** and check **Display only — do not evaluate**. The formula remains editable mathematical notation but never executes, defines variables or reports evaluation errors, even if it ends with `=`. Uncheck the option to resume evaluation. The mode is preserved in JSON and Undo/Redo.
 - Hover over a field to reveal a faint rectangle and a compact strip of controls immediately to the right of its first line. Drag the dotted handle to move, drag the corner grip to resize a note/figure, or click × to delete. Equations fit their content; notes initially fit their text. Text fields also have a lower-right resize grip: after resizing, both width and height stay as chosen, Markdown wraps within that width, and overflow can scroll. These dimensions are preserved in JSON.
 - MathLive provides the visual math editor and optional keyboard. Each input triggers a short debounced recalculation. Use `=` for assignment. Elementary arithmetic, powers, fractions, square roots, trigonometry and Greek symbols such as `mu` and `pi` work through MathLive's ASCII export.
-- Click **ƒ** in an equation's right controls for direct Math.js syntax, including vectors, functions and units. This field accepts spaces without converting to text. Editing it updates both the evaluated source and the formatted equation on the canvas. Incomplete expressions are displayed literally until they can be formatted. Both source and displayed formula are preserved in JSON. Click the plot's **⚙** control for its series and range settings. These panels float over the page without changing field height.
+- Click **⋮ → Settings** in an equation's right controls for direct Math.js syntax, including vectors, functions and units. This field accepts spaces without converting to text. Editing it updates both the evaluated source and the formatted equation on the canvas. Incomplete expressions are displayed literally until they can be formatted. Both source and displayed formula are preserved in JSON. Click the plot's **⚙** control for its series and range settings. These panels float over the page without changing field height.
 
 `fft([1,0,0,0])` and `ifft([1,1,1,1])` can also be typed directly in the visual editor. FFT/IFFT names are recognized as functions, and vectors keep their one-dimensional shape when moving between Math.js source and visual notation. Other named functions entered through ƒ are rendered as named operators on the canvas. Advanced syntax outside the visual adapter's subset remains most reliable in ƒ.
 - Every recalculation starts with an empty scope and evaluates math and plots by top edge (`y`), then left edge (`x`), then document order for exact ties. A variable must be defined above its use. Moving or deleting a definition recalculates downstream regions. Text and images do not affect scope. Each failing region shows its own error; subsequent regions continue without that region's assignments.
@@ -44,25 +44,25 @@ The browser test uses installed Microsoft Edge on Windows. On another platform, 
 
 Notes, images, plots and sections resize from their corner/boundary grip; their menus omit the duplicate resize button. Sliders and option controls retain a menu resize handle because they have no corner grip.
 
-Every field also has **Field properties (⋮)**. Choose a **Background color** and **Box line color**; uncheck the corresponding option for no fill/line. A section's fill colors its header. These are separate presentation properties: they never rewrite math, text, image data, graph settings or geometry. Colors are saved in JSON and support Undo/Redo. The − button minimizes a field and □ restores it.
+Every field has a **⋮** menu with **Settings**, **Colors**, and **Help** tabs. The first tab contains its settings; the last describes how the element works. Edit the minimized label directly on the minimized field. Under **Colors**, choose a **Background color** and **Box line color**; uncheck the corresponding option for no fill/line. A section's fill colors its header. These are separate presentation properties: they never rewrite math, text, image data, graph settings or geometry. Colors are saved in JSON and support Undo/Redo. The − button minimizes a field and □ restores it.
 
 ## Grouped calculations and field explanations
 
-Type a top-level semicolon to add another statement inside the same equation field, for example `a=3;b=4;a+b=`. The field becomes a left-aligned vertical list with a thin vertical bar. Statements run sequentially in one shared worksheet position and move, hide, save, and undo as one field. The final `=` shows the last statement's value; without it the group calculates silently. Enter creates a separate equation below the whole group. Arrow keys navigate within the group; its **ƒ** source remains ordinary semicolon-separated Math.js expressions. Remove separators in **ƒ** to return to a single expression. Matrix row separators and semicolons inside strings remain part of their expression. Groups add no function-body, callback or loop syntax.
+Type a top-level semicolon to add another statement inside the same equation field, for example `a=3;b=4;a+b=`. The field becomes a left-aligned vertical list with a thin vertical bar. Statements run sequentially in one shared worksheet position and move, hide, save, and undo as one field. The final `=` shows the last statement's value; without it the group calculates silently. Enter creates a separate equation below the whole group. Arrow keys navigate within the group; its **⋮ → Settings** source remains ordinary semicolon-separated Math.js expressions. Remove separators in **⋮ → Settings** to return to a single expression. Matrix row separators and semicolons inside strings remain part of their expression. Groups add no function-body, callback or loop syntax.
 
 Every field, including a section, has an **ⓘ** control in its right-side menu. Click it to see or directly edit a short explanation. The popup contains just the text field, empty when unset. It accepts up to 250 printable ASCII characters. Explanations are preserved in JSON and Undo/Redo; information remains available on hidden fields.
 
 ## Vectors and matrices
 
-MathLive's **Insert matrix** menu creates square-bracket matrices with the first cell ready for typing. Tab advances between cells. Existing parenthesis matrices are normalized to square brackets. In **ƒ**, use commas between columns and semicolons between rows, for example `[1,2;3,4]`; nested arrays `[[1,2],[3,4]]` work too. Both render as a two-dimensional grid and evaluate as a matrix. A vector `[1,2,3]` keeps its one-dimensional shape; `[1;2;3]` is a column matrix. Plots accept flat vectors, single-row matrices and single-column matrices for X/Y series.
+MathLive's **Insert matrix** menu creates square-bracket matrices with the first cell ready for typing. Tab advances between cells. Existing parenthesis matrices are normalized to square brackets. In **⋮ → Settings**, use commas between columns and semicolons between rows, for example `[1,2;3,4]`; nested arrays `[[1,2],[3,4]]` work too. Both render as a two-dimensional grid and evaluate as a matrix. A vector `[1,2,3]` keeps its one-dimensional shape; `[1;2;3]` is a column matrix. Plots accept flat vectors, single-row matrices and single-column matrices for X/Y series.
 
 Text notes support Markdown links: `[Reference](https://example.com)`. Hover over a note and use **Insert link** (↗), or select text while editing and press **Ctrl/Cmd+K**. Enter the label and address and click **Add link**. Links open in a new tab; the Markdown source remains editable and is saved with the note.
 
 ## Hidden fields, solution sections and fullscreen
 
-Hover over a field and click its **Hide field** control (the − minimize button in the right handle strip). Its content disappears, leaving a muted placeholder and an always-visible **Show field** control. Click the hidden label (initially, for example, Hidden math) to rename it directly. The label supports up to 120 characters, native text selection/paste, Undo/Redo and JSON save/load. It stays available after revealing and hiding the field again. The field can still be moved or deleted. Hiding affects presentation only: definitions and plots still evaluate, and hidden states are saved in JSON and Undo/Redo.
+Hover over a field and click **Hide field** (−). Only its editable label remains (Equation, Text, Picture, Plot, Slider or Options by default); a blank label leaves the field invisible at rest. Hover to reveal its outline, left grab handle and right-side extension menu, information, restore (□), and delete controls. Click restore to show the content again; double-clicking the label or blank field also restores it. Labels support up to 120 characters, Undo/Redo and JSON save/load. Minimized fields remain available to marquee selection and Select All, and can be dragged by their edges. Definitions and plots still evaluate.
 
-Use **+ Section** to create a full-width horizontal section. With fields selected, the section wraps their vertical span, adding room for its header; all fields between its top and bottom boundaries belong to it, regardless of horizontal position. With nothing selected, an empty section is inserted near the top of the current view. Click blank paper between its boundaries to add fields normally. Edit its title directly, drag its right move handle to move the section and its contents vertically, or drag its bottom boundary to adjust its height. Sections cannot overlap or nest. Their headers follow the existing canvas width and do not enlarge it.
+Use **+ Section** to create a full-width horizontal section. With fields selected, the section wraps their vertical span, adding room for its header; all fields between its top and bottom boundaries belong to it, regardless of horizontal position. With nothing selected, an empty section is inserted at the last worksheet pointer position. Click blank paper between its boundaries to add fields normally. Edit its title directly, drag its right move handle to move the section and its contents vertically, or drag its bottom boundary to adjust its height. Sections cannot overlap or nest. Their headers follow the existing canvas width and do not enlarge it.
 
 Click − beside a section title to minimize it, or □ to restore it. Closing hides the contents and pulls the visible sheet below upward without changing logical coordinates or evaluation order. Its header and arrow remain visible. Definitions inside still calculate. Deleting a section deletes its contents and closes its space; Undo restores them together. Enter/Backspace inside an open section adjust its height with the inserted/removed row.
 
@@ -91,6 +91,31 @@ Paste text on the worksheet to create a note, including single-word text. In an 
 Text fields display formatted Markdown when you leave the editor. Click a formatted note (or focus it and press Enter/F2) to edit the original source. Click outside or press Escape to show the formatting again. The unchanged Markdown source is saved in JSON.
 
 Supported: `#` headings (levels 1–6), `**bold**`, `*italic*`, `~~strikethrough~~`, inline backtick code, fenced code blocks, `-` bullet lists, numbered lists, `>` quotations and `[label](https://example.com)` links. Blank lines separate paragraphs; single newlines remain line breaks. Raw HTML is displayed as text. Tables, nested lists, embedded Markdown images and full CommonMark compatibility are outside this small subset; paste figures as independent image regions. Links open in a new tab. Existing plain-text notes continue to work.
+
+## Supported visual operators
+
+Right-click an equation to open MathLive's simplified menu. **Insert** includes absolute value / complex modulus, nth root, logarithm with a base, real and imaginary parts, and bounded sum/product. Fill template placeholders with **Tab** to move between them. Font variants, text/background colors, decorations, and unsupported calculus insertions are omitted. Matrix editing, Copy, Paste, and LaTeX mode remain available.
+
+You can also type `abs(-3)=`, `abs(3+4i)=`, `re(3+4i)=`, `im(3+4i)=`, and `mod(17,5)=` directly in the equation editor. These names become function operators automatically. `abs(z)` is the modulus of a complex number; `mod(a,b)` means integer modulo, not complex modulus.
+
+Alphabetic shortcuts do not expand midway through a name: `sin`, `sinc`, and `sinRate` remain distinct identifiers. Type normal Math.js-style calls such as `sinc(x)=sin(x)/x`, `abs(-3)`, `sqrt(9)`, or `map(t,sin)`. Completed calls receive their graphical form when finished or when leaving the field; typing a final `=` also commits the notation. This avoids changing a name before you have finished typing it. Use explicit multiplication (`*`) between named variables.
+
+`map(t,sin)` displays as `sin(t)` with an arrow over the whole call, while retaining `map(t,sin)` in the source. To insert its graphical template explicitly, type `map` and press **Tab**, enter the function name, press **Tab**, and fill the vector. Functions defined above, such as `sinc(x)=sin(x)/x`, work in `map(t,sinc)` and produce vectors usable by plots. The arrow is tagged worksheet notation for elementwise mapping; it does not change vector values or dimensions. Older worksheets using the earlier `map` template continue to load. Tab also commits other named templates such as `sqrt` or `abs`, and retains its unit-acceptance behavior.
+
+Custom function typing and rendering rules are registered in `src/function-mappings.js`. Structured reverse conversion lives in `src/visual-operators.js`. Functions with no dedicated mathematical notation retain their Math.js names; new visual forms require an explicit reverse mapping and tests rather than guessing from their appearance.
+
+| Visual operation | Settings → Math.js expression | Example result |
+| --- | --- | --- |
+| Natural logarithm | `log(100)` | `4.60517019` |
+| Logarithm with a base | `log(8,2)` | `3` |
+| Nth root | `nthRoot(27,3)` | `3` |
+| Absolute value / complex modulus | `abs(3+4i)` | `5` |
+| Real / imaginary part | `re(3+4i)` / `im(3+4i)` | `3` / `4` |
+| Integer modulo | `mod(17,5)` | `2` |
+| Bounded sum | `sumOver(k^2,k,1,3)` | `14` |
+| Bounded product | `productOver(k,k,1,4)` | `24` |
+
+Add a final `=` to display an answer. Unbased visual `log` and `ln` both mean the natural logarithm; use an explicit subscript for another base. Sum/product bounds are inclusive finite integers with step 1. The index is local, including when it has the same name as a worksheet variable. Parenthesize the sum/product body when it contains addition or subtraction. Empty sums/products return 0/1. Evaluation is limited to 5,000 total sum/product terms, including nested operators. Standard Math.js `sum(vector)` and `prod(vector)` also remain available. Incomplete operator templates show a field error and can be completed or repaired in Settings.
 
 ## Units
 
@@ -147,7 +172,7 @@ In **⚙ Plot settings**:
 
 Plot viewport, labels, legend and equal-scale settings are preserved in JSON. Grid spacing follows the coordinate scale. Advanced discontinuity detection is not implemented.
 
-When a formula ends with `=`, long vector/matrix answers (more than 12 entries) are initially shown as `[…]`. Click **Show N values** beside the answer to expand it, or **Hide values** to collapse it. The **ƒ** settings also contain **Show long vector/matrix results**. The full value always remains available to downstream calculations and plots; only its display is collapsed. This display choice is saved in JSON.
+When a formula ends with `=`, long vector/matrix answers (more than 12 entries) are initially shown as `[…]`. Click **Show N values** beside the answer to expand it, or **Hide values** to collapse it. The **⋮ → Settings** settings also contain **Show long vector/matrix results**. The full value always remains available to downstream calculations and plots; only its display is collapsed. This display choice is saved in JSON.
 
 ## Small modules
 
@@ -180,4 +205,5 @@ Library references: [Vite](https://vite.dev/guide/), [Math.js expressions](https
 
 
 To change the default worksheet, create it in the app, choose **Save JSON**, and replace src/example.json with the downloaded file. Commit and publish the change. The example is validated using the same loader as **Load JSON**.
+
 
