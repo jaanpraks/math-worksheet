@@ -1,0 +1,39 @@
+#canvas-tools{display:flex;align-items:center;gap:5px;padding:6px 12px;background:#f5f8f9;border-bottom:1px solid #d8e3e6;flex-shrink:0}
+#canvas-tools button,#canvas-tools select{font:12px Segoe UI,sans-serif;padding:5px 8px;min-height:30px}
+#canvas-tools label{font-size:12px;display:flex;align-items:center;gap:4px;margin-left:8px}
+#canvas-tools input{width:64px;padding:4px;font-size:12px}
+#canvas-tools button:disabled{opacity:.4;cursor:default}
+#canvas-contents{position:fixed;top:var(--canvas-top,160px);bottom:30px;left:0;width:260px;max-width:85vw;overflow-y:auto;z-index:70;background:#fff;border-right:1px solid #c8d9dd;box-shadow:4px 0 16px #203d4b18;padding:12px}
+#canvas-contents[hidden]{display:none}
+.contents-heading{display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:600;margin-bottom:12px}
+.contents-heading button{border:0;font-size:22px;padding:2px 8px}
+#canvas-contents nav{display:flex;flex-direction:column;gap:4px}
+#canvas-contents nav button{text-align:left;overflow-wrap:anywhere;border:0;border-radius:3px;padding:10px 12px;font-size:14px;min-height:40px}
+#canvas-contents [aria-current="location"]{background:#dceef1;color:#075f6b;font-weight:600}
+#canvas-contents p{font-size:13px;line-height:1.5;color:#657f88}
+.anchor-label-setting{display:block;margin-top:12px;font-size:12px}
+.anchor-label-setting input{display:block;width:100%}
+.print-guides{position:absolute;top:0;left:0;bottom:0;pointer-events:none;background-repeat:repeat-y}
+.print-guides[hidden]{display:none}
+body.fullscreen #canvas-contents{bottom:0}
+#canvas .region-settings{zoom:calc(1 / var(--canvas-zoom,1))}
+@media(max-width:800px){#canvas-tools{gap:4px;padding:5px 8px}#canvas-tools button{min-height:36px}header{padding:10px 12px}header span{display:none}}
+@media print{
+  html,body{height:auto!important;background:#fff!important;display:block!important}
+  body>header,body>aside,body>footer,#canvas-tools,#fullscreen,#canvas-contents{display:none!important}
+  #viewport{overflow:visible!important;height:auto!important;display:block!important}
+  #canvas{zoom:var(--print-scale,1)!important;width:var(--print-width)!important;height:var(--print-height)!important;background:#fff!important;overflow:hidden!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .print-guides,.canvas-caret,.selection-marquee,.region-head,.move-handle,.move-edge,.corner-resize,.source-pending,.vector-toggle{display:none!important}
+  .region{outline:none!important;box-shadow:none!important}
+  .native-source-editor{resize:none;border:0;outline:none!important}
+}
+#app-header{padding:4px 12px;gap:12px;min-height:36px;flex-wrap:nowrap;flex-shrink:0}
+#app-header strong{font-size:20px;letter-spacing:-.5px}
+#legacy-tools[hidden]{display:none!important}
+#worksheet-title{flex:1;width:auto;min-width:0;height:28px;padding:3px 8px;font:14px Segoe UI,sans-serif;background:transparent;color:#fff;border:1px solid transparent;border-radius:4px}
+#worksheet-title::placeholder{color:#b6d4dc}
+#worksheet-title:hover{border-color:#6c919c}
+#worksheet-title:focus{background:#fff;color:#203d4b;border-color:#b6d4dc}
+.document-actions{display:flex;gap:4px;padding-right:7px;margin-right:3px;border-right:1px solid #c8d9dd}
+#canvas-tools .toolbar-icon,#canvas-tools #fullscreen{position:static;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:32px;height:30px;min-height:30px;padding:5px;border-radius:5px;z-index:auto}
+#canvas-tools #fullscreen{margin-left:auto}

@@ -10,7 +10,7 @@ test('Undo and Redo restore edits through toolbar and keyboard',async({page})=>{
 });
 test('a group drag undoes as one command, and deletion can be undone and redone',async({page})=>{
   await load(page);await page.locator('.text').click({modifiers:['Control']});await page.locator('.math').click({modifiers:['Control']});
-  const handle=await page.locator('.math .region-head').boundingBox();await page.mouse.move(handle.x+8,handle.y+10);await page.mouse.down();await page.mouse.move(handle.x+98,handle.y+60,{steps:12});await page.mouse.up();
+  const handle=await page.locator('.math .move-handle').boundingBox();await page.mouse.move(handle.x+8,handle.y+10);await page.mouse.down();await page.mouse.move(handle.x+98,handle.y+60,{steps:12});await page.mouse.up();
   expect(await page.locator('.math').evaluate(el=>parseFloat(el.style.left))).toBe(590);
   await page.keyboard.press('Control+z');expect(await page.locator('.math').evaluate(el=>parseFloat(el.style.left))).toBe(500);expect(await page.locator('.text').evaluate(el=>parseFloat(el.style.left))).toBe(150);
   await page.keyboard.press('Control+y');expect(await page.locator('.math').evaluate(el=>parseFloat(el.style.left))).toBe(590);

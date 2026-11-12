@@ -23,6 +23,7 @@
 .move-edge-top { top: -5px; }.move-edge-bottom { bottom: -5px; }
 .move-edge-left,.move-edge-right { top: 1px; bottom: 1px; width: 6px; }
 .move-edge-left { left: -5px; }.move-edge-right { right: -5px; }
+.region.duplicate-preview { opacity: .65; pointer-events: none; z-index: 40; outline: 1px dashed #4d9ab3; }
 .region-head span { font-size: 18px; padding: 0; width: 18px; text-align: center; }
 .region-head button, .region-head summary, .region-head .resize { display: flex; align-items: center; justify-content: center; height: 24px; width: 18px; border: 0; border-radius: 3px; background: transparent; color: #718991; padding: 0; font: 16px/1 Segoe UI,sans-serif; }
 .region-head button:hover, .region-head summary:hover, .region-head .resize:hover { background: #eaf1f3; }
@@ -73,7 +74,9 @@
 .plot .region-settings { display: flex; flex-direction: column; gap: 8px; }
 .plot .range input { width: 36%; }
 .region.is-empty,.region.is-empty:hover,.region.is-empty:focus-within { outline-color: transparent; box-shadow: none; }
+.region.text.is-empty:focus-within { outline-color: #abc2c9; }
 .region.is-empty > .region-head,.text.is-empty > .corner-resize { visibility: hidden; pointer-events: none; }
+.region.is-empty:has(.region-head > details[open]) > .region-head { visibility: visible; pointer-events: auto; }
 .canvas-caret { position: absolute; width: 1px; height: 26px; background: #203d4b; pointer-events: none; animation: caret-blink 1s step-end infinite; z-index: 25; }
 .canvas-caret[hidden] { display: none; }
 @keyframes caret-blink { 50% { opacity: 0; } }
@@ -114,7 +117,7 @@
 .plot .plot-surface canvas { cursor: grab; touch-action: none; }
 .plot .plot-surface canvas.panning { cursor: grabbing; }
 .slider .variable-input { flex-wrap: nowrap; gap: 8px; }
-.slider .variable-input input[type="range"] { flex: 1; min-width: 0; }
+.slider .variable-input input[type="range"] { flex: 1; min-width: 0; width: auto; }
 .animation-play { flex: none; width: 32px; height: 28px; padding: 0; background: transparent; border: 1px solid #d7e3e6; color: #547c8a; }
 .variable-input.playing input[type="range"] { opacity: .45; cursor: default; }
 .control-settings { max-height: 65vh; overflow: auto; }
@@ -168,9 +171,22 @@ body.fullscreen > header,body.fullscreen > aside,body.fullscreen > footer { disp
 .properties-tabs { display: flex; gap: 4px; padding: 8px; border-bottom: 1px solid #d6e1e5; }
 .region-head .properties-tabs button { width: auto; height: 30px; padding: 4px 12px; font: 13px Segoe UI,sans-serif; }
 .region-head .properties-tabs button[aria-selected="true"] { background: #eaf1f3; color: #214955; }
+.properties-tabs,.popover-heading { position: sticky; top: 0; z-index: 2; background: #fff; }
+.popover-heading { display: flex; justify-content: flex-end; margin-bottom: 6px; }
+.region-head .popover-close,.region-head .properties-tabs .popover-close { flex-shrink: 0; margin-left: auto; width: 28px; height: 28px; padding: 0; font: 22px/1 Segoe UI,sans-serif; }
 .element-settings { display: grid; gap: 12px; padding: 12px; }
 .element-settings > label { display: grid; gap: 4px; font: 12px/1.5 Segoe UI,sans-serif; }
 .embedded-settings { position: static; width: auto; padding: 0; border: 0; box-shadow: none; }
+.plot-settings.embedded-settings { max-height: none; overflow: visible; min-width: 0; }
 .tabbed-properties .properties-panel { width: auto; padding: 12px; }
 .element-help { margin: 0; padding: 14px; font: 13px/1.6 Segoe UI,sans-serif; color: #58727d; }
 
+/* Native source and results remain separate selectable text. */
+.native-source .equation-line{display:flex;align-items:flex-end;flex-wrap:wrap}
+.native-source-editor,.math-source-settings{font-family:Consolas,'Courier New',monospace;font-size:16px;line-height:24px;white-space:pre;resize:both;padding:4px 6px;box-sizing:border-box;min-width:48px;min-height:34px;border:1px solid #cbd5e1;border-radius:4px;background:var(--field-fill,transparent);color:#172334}
+.math-source-settings{display:block;width:100%;height:130px;max-width:100%}
+.region.math.native-source output:not(.error){position:static;width:auto;height:auto;clip-path:none;overflow:auto;white-space:pre-wrap;display:block;color:#087f8c;font-family:Consolas,'Courier New',monospace;padding:6px 8px;max-width:80vw}
+.source-pending{display:block;color:#6b7280;padding:4px 8px}
+.source-pending[hidden]{display:none}
+.tabbed-properties{resize:both;min-width:280px;min-height:180px;max-width:calc(100vw - 24px)}
+.result-visibility.disabled-setting{opacity:.5;cursor:default}

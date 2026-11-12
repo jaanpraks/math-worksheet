@@ -2,7 +2,7 @@ import {test,expect} from '@playwright/test';
 async function fresh(page){await page.goto('/');await page.locator('#canvas').click({position:{x:1050,y:600}});const region=page.locator('.math').last();await expect(region.locator('.expression')).toBeFocused();return region;}
 test('editing Math.js source updates the canvas equation and persists both views',async({page})=>{
   const region=await fresh(page);await page.keyboard.type('1');await region.hover();await region.getByLabel('Field properties',{exact:true}).click();
-  const raw=region.getByLabel('Math.js expression',{exact:true});await raw.fill('fft([1,0,0,0])=');
+  const raw=region.getByLabel('Math.js expression',{exact:true});await raw.fill('fft([1,0,0,0])=');await raw.press('Control+Enter');
   await expect(region.locator('output')).toContainText('[1, 1, 1, 1]');
   await expect.poll(()=>region.locator('.expression').evaluate(el=>el.value)).toContain('\\operatorname{fft}');
   await region.getByLabel('Field properties',{exact:true}).click();
@@ -34,6 +34,3 @@ test('raw multi-letter identifiers remain usable when editing the displayed equa
   await expect(next.locator('output')).toContainText('[2, 2, 2, 2]');await expect(next).not.toHaveClass(/has-error/);
   await page.screenshot({path:'test-results/fft-preview.png'});
 });
-
-
-

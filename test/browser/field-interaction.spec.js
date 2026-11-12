@@ -34,7 +34,7 @@ test('dragging a field edge moves it without editing its content',async({page})=
 });
 test('section insertion uses the pointer after an old caret position was left behind',async({page})=>{
   await blank(page);await page.getByRole('button',{name:'+ Math',exact:true}).click();await expect(page.locator('.expression')).toBeFocused();await page.keyboard.press('Backspace');
-  const canvas=await page.locator('#canvas').boundingBox();await page.mouse.move(canvas.x+550,canvas.y+400);await page.getByRole('button',{name:'+ Section',exact:true}).click();await expect(page.locator('.section')).toHaveCSS('top','400px');
+  const canvas=await page.locator('#canvas').boundingBox();await page.mouse.move(canvas.x+550,canvas.y+400);await page.waitForTimeout(200);await page.getByRole('button',{name:'+ Section',exact:true}).click();await expect(page.locator('.section')).toHaveCSS('top','400px');
 });
 test('text has padding and a blinking caret alone does not show handles',async({page})=>{
   await blank(page);await page.getByRole('button',{name:'+ Text',exact:true}).click();const field=page.locator('.text');await field.getByLabel('Note',{exact:true}).fill('A padded note');await page.mouse.move(900,600);
@@ -43,3 +43,7 @@ test('text has padding and a blinking caret alone does not show handles',async({
 });
 
 
+
+test('section keeps the lower insertion point during the trip to the toolbar',async({page})=>{
+ await blank(page);const canvas=await page.locator('#canvas').boundingBox();await page.mouse.click(canvas.x+600,canvas.y+600);await expect(page.locator('.expression')).toBeFocused();await page.mouse.move(canvas.x+600,canvas.y+10,{steps:10});await page.mouse.move(900,30);await page.getByRole('button',{name:'+ Section',exact:true}).click();await expect(page.locator('.section')).toHaveCSS('top','600px');
+});

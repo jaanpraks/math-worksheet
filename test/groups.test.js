@@ -7,7 +7,7 @@ import {worksheet} from '../src/engine.js';
 import {region,serialize,deserialize} from '../src/model.js';
 test('statement groups preserve matrix rows, strings, and comments',()=>{
   assert.deepEqual(statements('A=[1,2;3,4];label="a;b";det(A)'),['A=[1,2;3,4]','label="a;b"','det(A)']);
-  assert.equal(statements('a=3 # ignore ; here\nb=4').length,1);
+  assert.equal(statements('a=3 # ignore ; here\nb=4').length,2);
   const source='A=[1,2;3,4];b=det(A);b*2=';const latex=sourceToLatex(source);assert.equal(groupRows(latex).length,3);assert.match(latex,/bmatrix/);assert.equal(statements(unitSource(latex)).length,3);
 });
 test('groups evaluate sequentially, define later worksheet values and expose the last result',()=>{

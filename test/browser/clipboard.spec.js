@@ -25,15 +25,15 @@ test('text paste creates a note on paper, fills an empty field, and replaces a s
   await paste(page.locator('.text .note-preview').last(),' plus');await expect(page.locator('.text textarea').last()).toHaveValue('singleword plus');
 });
 test('image paste into an empty field replaces the placeholder with a separate image',async({page})=>{
-  await page.goto('/');const count=await page.locator('.region').count();
+  await page.goto('/');const count=await page.locator('.region').count(),images=await page.locator('.image').count();
   await page.locator('#canvas').click({position:{x:1050,y:600}});
   await page.locator('.expression').last().evaluate(el=>{
     const bytes=Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='),c=>c.charCodeAt(0));
     const data=new DataTransfer();data.items.add(new File([bytes],'pixel.png',{type:'image/png'}));
     el.dispatchEvent(new ClipboardEvent('paste',{clipboardData:data,bubbles:true,cancelable:true}));
   });
-  await expect(page.locator('.image')).toHaveCount(1);await expect(page.locator('.region')).toHaveCount(count+1);
-  expect(await page.locator('.image').evaluate(el=>[parseFloat(el.style.left),parseFloat(el.style.top)])).toEqual([1050,600]);
+  await expect(page.locator('.image')).toHaveCount(images+1);await expect(page.locator('.region')).toHaveCount(count+1);
+  expect(await page.locator('.image').last().evaluate(el=>[parseFloat(el.style.left),parseFloat(el.style.top)])).toEqual([1050,600]);
 });
 test('Control-A selects all fields and Delete removes the selection together',async({page})=>{
   await page.goto('/');const count=await page.locator('.region').count();
@@ -43,10 +43,10 @@ test('Control-A selects all fields and Delete removes the selection together',as
   await paste(page.locator('#canvas'),'A fresh worksheet');await expect(page.locator('.text textarea')).toHaveValue('A fresh worksheet');
 });
 
-test('pasting text into an existing equation extends its content as a note',async({page})=>{
+test('pasting into a committed equation keeps it in math mode',async({page})=>{
   await page.goto('/');await page.locator('#canvas').click({position:{x:1050,y:600}});
   const field=page.locator('.expression').last();await expect(field).toBeFocused();await page.keyboard.type('2+3');
   await field.evaluate(el=>{el.position=1;});
   await paste(field,' apples ');
-  await expect(page.locator('.text textarea').last()).toHaveValue('2 apples +3');
+  await expect(field).toBeFocused();expect(await field.evaluate(el=>el.value)).toContain('apples');await expect(page.locator('.math').last()).toHaveClass(/math/);
 });

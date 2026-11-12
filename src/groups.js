@@ -3,13 +3,13 @@ export function statements(source) {
   const rows=[];let start=0,depth=0,quote='',comment=false;
   for(let i=0;i<source.length;i++){
     const c=source[i];
-    if(comment){if(c==='\n')comment=false;continue;}
+    if(comment){if(c==='\n'){comment=false;if(depth===0){rows.push(source.slice(start,i));start=i+1;}}continue;}
     if(quote){if(c==='\\')i++;else if(c===quote)quote='';continue;}
     if(c==='#'){comment=true;continue;}
     if(c==='"' || (c==="'" && !/[\w)\]}]/.test(source[i-1] || ''))){quote=c;continue;}
     if('([{'.includes(c))depth++;
     else if(')]}'.includes(c))depth--;
-    else if(c===';' && depth===0){rows.push(source.slice(start,i));start=i+1;}
+    else if((c===';' || c==='\n') && depth===0){rows.push(source.slice(start,i));start=i+1;}
   }
   rows.push(source.slice(start));return rows;
 }

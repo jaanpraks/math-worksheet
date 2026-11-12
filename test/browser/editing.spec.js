@@ -4,7 +4,7 @@ test('blank-page typing creates math, renders inline results, and enters the nex
   await page.goto('/');
   await expect(page.locator('.math .result').first()).toBeHidden();
   await expect.poll(() => page.locator('.text textarea').first().evaluate(el=>el.clientHeight >= el.scrollHeight)).toBe(true);
-  await page.locator('#canvas').click({ position: { x: 1020, y: 100 } });
+  await page.locator('#canvas').click({ position: { x: 1050, y: 600 } });
   const equation = page.locator('.math').last();
   await expect(equation.locator('.expression')).toBeFocused();
   await page.keyboard.type('2+3=');
@@ -24,11 +24,11 @@ test('blank-page typing creates math, renders inline results, and enters the nex
   await expect(page.locator('.math').last().locator('output')).toContainText('42');
 });
 
-test('an actual space converts writing into editable text and persists it', async ({ page }) => {
+test('a leading space starts editable text and persists it', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#canvas').click({ position: { x: 1020, y: 100 } });
+  await page.locator('#canvas').click({ position: { x: 1050, y: 600 } });
   await expect(page.locator('.expression').last()).toBeFocused();
-  await page.keyboard.type('hello world');
+  await page.keyboard.press('Space');await expect(page.locator('.text textarea').last()).toBeFocused();await page.keyboard.type('hello world');
   const note=page.locator('.text textarea').last();
   await expect(note).toHaveValue('hello world');
   await page.keyboard.type(' again');
@@ -42,7 +42,7 @@ test('an actual space converts writing into editable text and persists it', asyn
 
 test('pasted words become text while rendered math whitespace stays math', async ({ page }) => {
   await page.goto('/');
-  await page.locator('#canvas').click({ position: { x: 1020, y: 100 } });
+  await page.locator('#canvas').click({ position: { x: 1050, y: 600 } });
   const field=page.locator('.expression').last();
   await field.evaluate(el=>{
     const data=new DataTransfer(); data.setData('text/plain','orbital speed');
@@ -50,6 +50,6 @@ test('pasted words become text while rendered math whitespace stays math', async
   });
   await expect(page.locator('.text textarea').last()).toHaveValue('orbital speed');
   // The starter's '2pi sqrt(...)' ASCII export is still a math expression.
-  await expect(page.locator('.math')).toHaveCount(4);
-  await expect(page.locator('.math output').last()).toContainText('5544.855');
+  await expect(page.locator('.math')).toHaveCount(6);
+  await expect(page.locator('.math output').nth(3)).toContainText('5544.855');
 });

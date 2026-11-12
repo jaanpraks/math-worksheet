@@ -1,25 +1,29 @@
 import example from "./example.json" with { type: "json" };
 import {validateSections} from './sections.js';
 import {markerShapes} from './plot-styles.js';
+import {MAX_CANVAS_Y,viewSettings} from './canvas-geometry.js';
+import {worksheetTitle} from './document-title.js';
 export const imagePattern = /^data:image\/(png|jpeg|webp|gif);base64,[A-Za-z0-9+/=\r\n]+$/;
 export function region(type, x = 60, y = 60) {
-  return { id: crypto.randomUUID(), type, x, y, width: type === 'plot' ? 470 : 380, height: type === 'plot' ? 365 : type === 'image' ? 260 : 150,
+  return { id: crypto.randomUUID(), type, x, y, width: type === 'plot' ? 470 : type==='slider'?280:380, height: type === 'plot' ? 365 : type === 'image' ? 260 : 150,
     ...(type === 'math' ? { latex: '1+1', source: '1+1' } : type === 'section'?{x:0,width:1300,height:250,title:'Solution',collapsed:false}: type === 'text' ? { text: 'Write a note…' } : type === 'plot' ? { series: 'sin(x)\ncos(x)', min: '0', max: '6.28',title:'',xLabel:'',yLabel:'',legendLabels:'',showLegend:false,equalScale:false } : type==='slider'?{name:'a',value:'1',min:'0',max:'10',step:'0.1',unit:''}:type==='radio'?{name:'b',options:'1\n2\n3',choice:'0',unit:''}:{ src: '', alt: 'Pasted image' }) };
 }
 export function starter() {
   return deserialize(JSON.stringify(example));
 }
-export function serialize(regions) { return JSON.stringify({ version: 1, regions }, null, 2); }
+export function serialize(regions,canvas,title) { return JSON.stringify({ version: 1, regions,...(canvas?{canvas:viewSettings(canvas)}:{}),...(title!==undefined?{title:worksheetTitle(title)}:{}) }, null, 2); }
 export function deserialize(text) {
   if (text.length > 30_000_000) throw Error('Worksheet exceeds 30 MB.');
   const doc = JSON.parse(text);
+  if(doc.title!==undefined)worksheetTitle(doc.title);
+  if(doc.canvas!==undefined)viewSettings(doc.canvas);
   if (doc.version !== 1 || !Array.isArray(doc.regions) || doc.regions.length > 250) throw Error('Expected a version 1 worksheet with at most 250 regions.');
   const ids = new Set();
   const regions=doc.regions.map(r => {
     if (!r || !['math', 'text', 'image', 'plot','slider','radio','section'].includes(r.type) || typeof r.id !== 'string' || ids.has(r.id)) throw Error('Invalid region or duplicate ID.');
     ids.add(r.id);
-    for (const key of ['x','y','width','height']) if (!Number.isFinite(r[key]) || r[key] < 0 || r[key] > 20000) throw Error('Invalid region geometry.');
-    if (r.type==='image' ? r.width<=0 || r.height<=0 : r.width < (r.type==='text'?40:220) || r.height < (r.type==='text'?26:100)) throw Error('Region is too small.');
+    for (const key of ['x','y','width','height']) if (!Number.isFinite(r[key]) || r[key] < 0 || r[key] > (['y','height'].includes(key)?MAX_CANVAS_Y:20000)) throw Error('Invalid region geometry.');
+    if (r.type==='image' ? r.width<=0 || r.height<=0 : r.width < (r.type==='text'?40:r.type==='math'?48:220) || r.height < (r.type==='text'?26:100)) throw Error('Region is too small.');
     const clean = { id: r.id, type: r.type, x: r.x, y: r.y, width: r.width, height: r.height };
     for(const key of ['backgroundColor','borderColor'])if(r[key]!==undefined){if(typeof r[key]!=='string' || (r[key]!=='transparent' && !/^#[0-9a-f]{6}$/i.test(r[key])))throw Error('Invalid field color.');clean[key]=r[key];}
     if(r.description!==undefined){if(typeof r.description!=='string' || r.description.length>250 || /[^\x20-\x7e]/.test(r.description))throw Error('Invalid field explanation.');clean.description=r.description;}
@@ -31,6 +35,11 @@ export function deserialize(text) {
       if(r.loop!==undefined){if(typeof r.loop!=='boolean')throw Error('Invalid animation loop.');clean.loop=r.loop;}
     }
     if(r.type==='math' && r.displayOnly!==undefined){if(typeof r.displayOnly!=='boolean')throw Error('Invalid equation mode.');clean.displayOnly=r.displayOnly;}
+    if(r.type==='math' && r.equationMode!==undefined){if(typeof r.equationMode!=='boolean')throw Error('Invalid equation entry mode.');clean.equationMode=r.equationMode;}
+    if(r.type==='math' && r.displayMode!==undefined){if(!['math','source'].includes(r.displayMode))throw Error('Invalid equation display mode.');clean.displayMode=r.displayMode;}
+    if(r.type==='math' && r.showAnswer!==undefined){if(typeof r.showAnswer!=='boolean')throw Error('Invalid answer visibility.');clean.showAnswer=r.showAnswer;}
+    if(r.type==='math' && r.showNativeResult!==undefined){if(typeof r.showNativeResult!=='boolean')throw Error('Invalid Math.js result visibility.');clean.showNativeResult=r.showNativeResult;}
+    if(r.type==='math' && r.sourceHeight!==undefined){if(!Number.isFinite(r.sourceHeight) || r.sourceHeight<34 || r.sourceHeight>2000)throw Error('Invalid source editor height.');clean.sourceHeight=r.sourceHeight;}
     if(r.type==='math' && r.showVector!==undefined){if(typeof r.showVector!=='boolean')throw Error('Invalid vector display setting.');clean.showVector=r.showVector;}
     if(r.type==='plot') {
       if(r.seriesStyles!==undefined){

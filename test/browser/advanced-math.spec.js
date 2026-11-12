@@ -5,7 +5,7 @@ async function setup(page){
 test('advanced visual operators calculate and survive Save/Load',async({page})=>{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));const field=await setup(page);
   for(const [latex,answer] of [[String.raw`\log_2(8)`,3],[String.raw`\ln(1)`,0],[String.raw`\sqrt[3]{27}`,3],[String.raw`\lvert 3+4i\rvert`,5],[String.raw`\Re(3+4i)`,3],[String.raw`\Im(3+4i)`,4],[String.raw`\sum_{k=1}^{3}\left(k^2\right)`,14],[String.raw`\prod_{k=1}^{4}\left(k\right)`,24]]){
-    await field.evaluate((el,latex)=>{el.setValue(latex+'=',{silenceNotifications:true});el.dispatchEvent(new Event('input',{bubbles:true}));},latex);
+    await field.evaluate((el,latex)=>{el.setValue(latex+'=',{silenceNotifications:true});el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new KeyboardEvent('keyup',{key:'=',bubbles:true}));},latex);
     await expect(page.locator('.math output')).toHaveText(`= ${answer}`);
   }
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Save JSON',exact:true}).click();const file=await pending;await page.reload();await page.locator('#file').setInputFiles(await file.path());await expect(page.locator('.math output')).toHaveText('= 24');expect(errors).toEqual([]);
@@ -46,7 +46,7 @@ test('a seeded first character still permits real-part function typing',async({p
 });
 test('incomplete operators show recoverable errors without browser exceptions',async({page})=>{
   const errors=[];page.on('pageerror',error=>errors.push(error.message));const field=await setup(page);
-  await field.evaluate(el=>{el.setValue(String.raw`\sum_{k}^{3}k`,{silenceNotifications:true});el.dispatchEvent(new Event('input',{bubbles:true}));});await expect(page.locator('.math output')).toContainText('index definition');
+  await field.evaluate(el=>{el.setValue(String.raw`\sum_{k}^{3}k`,{silenceNotifications:true});el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new KeyboardEvent('keyup',{key:'=',bubbles:true}));});await expect(page.locator('.math output')).toContainText('index definition');
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Save JSON',exact:true}).click();const file=await pending;await page.reload();await page.locator('#file').setInputFiles(await file.path());await expect(page.locator('.math')).toHaveCount(1);await expect(page.locator('.math output')).toContainText('index definition');
-  await page.locator('.math').hover();await page.getByLabel('Field properties',{exact:true}).click();await page.getByLabel('Math.js expression',{exact:true}).fill('sumOver(k,k,1,3)=');await expect(page.locator('.math output')).toHaveText('= 6');expect(errors).toEqual([]);
+  await page.locator('.math').hover();await page.getByLabel('Field properties',{exact:true}).click();await page.getByLabel('Math.js expression',{exact:true}).fill('sumOver(k,k,1,3)=');await page.getByLabel('Math.js expression',{exact:true}).press('Control+Enter');await expect(page.locator('.math output')).toHaveText('= 6');expect(errors).toEqual([]);
 });

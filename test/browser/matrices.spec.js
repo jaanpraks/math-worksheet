@@ -12,8 +12,6 @@ test('raw semicolon matrices render as grids and remain usable in visual calcula
   await page.goto('/');await page.locator('#canvas').click({position:{x:1050,y:600}});await expect(page.locator('.expression').last()).toBeFocused();await page.keyboard.type('1');
   let r=page.locator('.math').last();await r.hover();await r.getByLabel('Field properties',{exact:true}).click();await r.getByLabel('Math.js expression',{exact:true}).fill('A=[1,2;3,4]');await r.getByLabel('Field properties',{exact:true}).click();
   await expect.poll(()=>r.locator('.expression').evaluate(el=>el.value)).toContain('bmatrix');
-  await r.locator('.expression').focus();await page.keyboard.press('Enter');r=page.locator('.math').last();await expect(r.locator('.expression')).toBeFocused();await page.keyboard.type('1');await r.hover();await r.getByLabel('Field properties',{exact:true}).click();await r.getByLabel('Math.js expression',{exact:true}).fill('det(A)=');
+  await r.locator('.expression').focus();await page.keyboard.press('Enter');r=page.locator('.math').last();await expect(r.locator('.expression')).toBeFocused();await page.keyboard.type('1');await r.hover();await r.getByLabel('Field properties',{exact:true}).click();await r.getByLabel('Math.js expression',{exact:true}).fill('det(A)=');await r.getByLabel('Math.js expression',{exact:true}).press('Control+Enter');
   await expect(r.locator('output')).toContainText('-2');
 });
-
-

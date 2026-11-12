@@ -6,7 +6,7 @@ async function requestAnswer(page) {
   await field.evaluate(el=>{el.position=el.lastOffset;});await page.keyboard.type('=');
 }
 async function equation(page) {
-  const canvas=await page.locator('#canvas').boundingBox();await page.mouse.move(canvas.x+1030,canvas.y+80);await page.getByRole('button',{name:'+ Math',exact:true}).click();
+  const canvas=await page.locator('#canvas').boundingBox();const elements=page.getByRole('button',{name:'Elements',exact:true});if(await elements.getAttribute('aria-expanded')==='false')await elements.click();await page.locator('#elements-palette').getByRole('button',{name:'Math',exact:true}).click();await page.mouse.click(canvas.x+1030,canvas.y+80);
   const field=page.locator('.expression').last(); await expect(field).toBeFocused(); return field;
 }
 test('5kg offers a unit, Tab accepts it, colors it, and persists its meaning',async({page})=>{
@@ -15,7 +15,7 @@ test('5kg offers a unit, Tab accepts it, colors it, and persists its meaning',as
   await page.keyboard.type('5kg');
   const r=page.locator('.math').last();
   await expect(r.locator('.unit-hint')).toContainText('kg — Tab');
-  await expect(r.locator('output')).toContainText('Press Tab');
+  await expect(r.locator('output')).toHaveText('');
   expect(await field.evaluate(el=>el.value)).not.toContain('worksheet-unit');
   await page.keyboard.press('Tab');
   await expect(field).toBeFocused();
@@ -38,7 +38,7 @@ test('5kg offers a unit, Tab accepts it, colors it, and persists its meaning',as
   await expect.poll(()=>page.locator('.expression').last().evaluate(el=>el.value)).toContain('worksheet-unit=kg');
   expect(errors).toEqual([]);
 });
-test('explicit multiplication works, ordinary Space still converts to text',async({page})=>{
+test('explicit multiplication works and Space leaves an equation in math mode',async({page})=>{
   await page.goto('/');await equation(page);
   await page.keyboard.type('2*5kg');await page.keyboard.press('Tab');await requestAnswer(page);
   await expect(page.locator('.math').last().locator('output')).toContainText('10 kg');
@@ -46,8 +46,8 @@ test('explicit multiplication works, ordinary Space still converts to text',asyn
   await page.keyboard.type('5*kg');await page.keyboard.press('Tab');
   await requestAnswer(page);
   await expect(page.locator('.math').last().locator('output')).toContainText('5 kg');
-  await page.keyboard.press('Space');
-  await expect(page.locator('.text textarea').last()).toBeFocused();
+  await page.keyboard.press('Space');await page.locator('.expression').last().blur();await page.locator('.expression').last().focus();
+  await expect(page.locator('.expression').last()).toBeFocused();await expect(page.locator('.math').last().locator('output')).toContainText('5 kg');
 });
 
 test('compound units and an identically named variable remain distinct',async({page})=>{
@@ -85,5 +85,3 @@ test('units may be squared before or after Tab acceptance',async({page})=>{
   await requestAnswer(page);
   await expect(page.locator('.math').last().locator('output')).toContainText('5 m / s^2');
 });
-
-

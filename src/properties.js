@@ -1,6 +1,7 @@
 export function applyAppearance(r,element) {
   element.style.backgroundColor=r.type==='section'?'transparent':r.backgroundColor || 'transparent';
   element.style.setProperty('--field-line',r.borderColor || 'transparent');
+  element.style.setProperty('--field-fill',r.backgroundColor || 'transparent');
   if(r.type==='section' && r.backgroundColor)element.style.setProperty('--section-fill',r.backgroundColor);
   else element.style.removeProperty('--section-fill');
 }
@@ -18,9 +19,9 @@ export function mountProperties(r,element,head,remove,changed) {
   color('backgroundColor','Background','#fff4cc');color('borderColor','Box line','#718991');head.insertBefore(details,remove);
 }
 
-export const fieldNames={text:'Text',image:'Picture',math:'Equation',plot:'Plot',slider:'Slider',radio:'Options',section:'Section'};
+export const fieldNames={text:'Text',image:'Picture',math:'Equation',plot:'Plot',slider:'Slider',radio:'Selector',section:'Section'};
 const fieldHelp={
-  math:'Define variables and calculate expressions. End an expression with = to show its answer. Variables are available to fields below. Use Settings for direct Math.js syntax, units, matrices and display-only formulas.',
+  math:'Define variables and calculate expressions. End an expression with = to show its answer. Variables are available to fields below. Use Settings for direct Math.js syntax, units, matrices and display-only formulas. In graphical mode, =, a closing bracket, Enter or leaving the editor calculates. In native Math.js mode, Ctrl/Cmd+Enter or leaving the editor calculates; Enter adds a line. Show Math.js result controls native answer visibility. A leading Space starts a text note.',
   text:'Write notes with Markdown headings, lists, emphasis and links. Click the text to edit it. Drag a corner to resize the box.',
   image:'An embedded picture saved inside the worksheet. Drag a corner to resize it while keeping its proportions.',
   plot:'Plot functions of x or pairs of X and Y vectors. Settings control series, labels, ranges and styles. Worksheet variables defined above are available here.',
@@ -33,6 +34,9 @@ export function tabProperties(r,element,details,tools,changed){
   const colors=document.createElement('div');colors.className='properties-panel';colors.append(...panel.childNodes);
   const settings=document.createElement('div');settings.className='element-settings';
   for(const tool of tools){const content=tool.querySelector(':scope > .region-settings');if(content){content.classList.remove('region-settings');content.classList.add('embedded-settings');settings.append(content);}}
+  const labelRow=document.createElement('label');labelRow.className='anchor-label-setting';labelRow.textContent='Label / anchor (#Name)';
+  const label=document.createElement('input');label.type='text';label.maxLength=120;label.value=r.hiddenLabel ?? fieldNames[r.type];label.setAttribute('aria-label','Field label / anchor');
+  label.oninput=()=>{r.hiddenLabel=label.value;const placeholder=element.querySelector('.hidden-placeholder');if(placeholder)placeholder.value=label.value;changed();};labelRow.append(label);settings.append(labelRow);
   const help=document.createElement('p');help.className='element-help';help.textContent=fieldHelp[r.type];
   const tabs=document.createElement('div');tabs.className='properties-tabs';tabs.setAttribute('role','tablist');tabs.setAttribute('aria-label',`${fieldNames[r.type]} properties`);panel.append(tabs);
   const entries=[['Settings',settings],['Colors',colors],['Help',help]];

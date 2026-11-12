@@ -1,3 +1,4 @@
+import {canvasZoom} from './canvas-geometry.js';
 import {drawPlot} from './plot.js';
 import {seriesStyle,drawMarker} from './plot-styles.js';
 import {mountSeriesStyles} from './series-style-ui.js';
@@ -22,7 +23,7 @@ export function mountPlot(r,body,head,remove,changed) {
   let canvas;
   const check=(key,label)=>{
     const wrap=document.createElement('label'),input=document.createElement('input');input.type='checkbox';input.checked=!!r[key];input.setAttribute('aria-label',label);wrap.append(input,document.createTextNode(label));settings.append(wrap);
-    input.addEventListener('change',()=>{r[key]=input.checked;if(key==='equalScale' && r.plotView && r.equalScale){const b=canvas.getBoundingClientRect();equalizePlot(r.plotView,plotArea(b.width,b.height,r));}changed();});return input;
+    input.addEventListener('change',()=>{r[key]=input.checked;if(key==='equalScale' && r.plotView && r.equalScale)equalizePlot(r.plotView,plotArea(canvas.clientWidth,canvas.clientHeight,r));changed();});return input;
   };
   const equal=check('equalScale','Equal axis scales');check('showLegend','Legend on left');edit('legendLabels','Legend names — one per series',true);
   const fit=document.createElement('button');fit.textContent='Fit data';fit.type='button';fit.onclick=()=>{delete r.plotView;changed();};settings.append(fit);
@@ -56,7 +57,7 @@ export function mountPlot(r,body,head,remove,changed) {
     const delta=(event.deltaY || event.deltaX)*(event.deltaMode===1?16:event.deltaMode===2?canvas.clientHeight:1);
     const factor=Math.exp(Math.max(-2,Math.min(2,delta*.0015))),axes=event.ctrlKey?'y':event.shiftKey?'x':'both';
     if(axes!=='both'){r.equalScale=false;equal.checked=false;}
-    const box=canvas.getBoundingClientRect();zoomPlot(r.plotView,plotArea(box.width,box.height,r),event.clientX-box.left,event.clientY-box.top,factor,axes);changed();
+    const box=canvas.getBoundingClientRect(),zoom=canvasZoom(canvas);zoomPlot(r.plotView,plotArea(box.width/zoom,box.height/zoom,r),(event.clientX-box.left)/zoom,(event.clientY-box.top)/zoom,factor,axes);changed();
   },{passive:false});
   let drag;
   canvas.addEventListener('pointerdown',event=>{
@@ -66,7 +67,7 @@ export function mountPlot(r,body,head,remove,changed) {
   });
   canvas.addEventListener('pointermove',event=>{
     if(!drag || event.pointerId!==drag.id)return;
-    panPlot(r.plotView,event.clientX-drag.x,event.clientY-drag.y);drag.x=event.clientX;drag.y=event.clientY;changed();
+    panPlot(r.plotView,(event.clientX-drag.x)/canvasZoom(canvas),(event.clientY-drag.y)/canvasZoom(canvas));drag.x=event.clientX;drag.y=event.clientY;changed();
   });
   const endDrag=event=>{
     if(!drag || event.pointerId!==drag.id)return;

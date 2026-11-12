@@ -26,14 +26,14 @@ export function worksheet(regions) {
         // A trailing equals sign asks for the value; interior '=' still assigns.
         let value;
         for(const row of statements(region.source)){
-          const source=evaluationSource(row);if(!source.trim())continue;
-          if (region.unitMode === 'explicit') requireAcceptedUnits(normalize(source), local);
-          value=evaluate(normalize(source),local);
+          const source=region.displayMode==='source'?row.trim():evaluationSource(row);if(!source || source.startsWith('#'))continue;
+          if (region.unitMode === 'explicit' && region.displayMode!=='source') requireAcceptedUnits(normalize(source), local);
+          value=evaluate(region.displayMode==='source'?source:normalize(source),local);
           if(value?.isResultSet && value.entries.length===1)value=value.entries[0];
         }
         for (const [key, val] of local) scope.set(key, val);
         const shape=value?.isMatrix?value.size():Array.isArray(value)?arrayShape(value):undefined;
-        results.set(region.id, { text: format(value, { precision: 9 }), latex: unitResult(value),collection:shape?{shape,count:shape.reduce((a,b)=>a*b,1)}:undefined });
+        results.set(region.id, { text: value===undefined?'':format(value, { precision: 9 }), latex: unitResult(value),collection:shape?{shape,count:shape.reduce((a,b)=>a*b,1)}:undefined });
       } else if(region.type==='slider' || region.type==='radio') {
         const {value,control}=evaluateControl(region,local);
         scope.set(region.name,value);

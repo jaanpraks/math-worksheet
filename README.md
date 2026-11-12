@@ -28,23 +28,31 @@ The browser test uses installed Microsoft Edge on Windows. On another platform, 
 
 ## Use
 
-- Click blank paper and type to create an equation at that position. Press Space to convert the writing into a text note, retaining what you typed; subsequent spaces remain normal text. Pasting words containing whitespace also creates text. Press Enter in an equation to begin a new equation below it. The toolbar remains available for explicit region types.
+- Click blank paper and type. Start with Space in an empty field to create a text note. Spaces inside a nonempty equation remain mathematical separators and never convert it into a note. Press Enter to calculate and begin a new equation below it. The right-hand Elements palette provides explicit region types.
 - Equations evaluate automatically, but answers appear only when you add a final `=`. For example, `a=3` silently defines a variable, `a*2` calculates silently, and `a*2=` displays `6` after the equals sign. Interior equals signs still assign variables. Errors in evaluated fields remain visible even without a final `=`. Equations and answers share the same 20 px math font.
 - For a pedagogical formula, open **⋮ → Settings** and check **Display only — do not evaluate**. The formula remains editable mathematical notation but never executes, defines variables or reports evaluation errors, even if it ends with `=`. Uncheck the option to resume evaluation. The mode is preserved in JSON and Undo/Redo.
 - Hover over a field to reveal a faint rectangle and a compact strip of controls immediately to the right of its first line. Drag the dotted handle to move, drag the corner grip to resize a note/figure, or click × to delete. Equations fit their content; notes initially fit their text. Text fields also have a lower-right resize grip: after resizing, both width and height stay as chosen, Markdown wraps within that width, and overflow can scroll. These dimensions are preserved in JSON.
-- MathLive provides the visual math editor and optional keyboard. Each input triggers a short debounced recalculation. Use `=` for assignment. Elementary arithmetic, powers, fractions, square roots, trigonometry and Greek symbols such as `mu` and `pi` work through MathLive's ASCII export.
+- MathLive provides the visual math editor and optional keyboard. Ordinary typing pauses numerical evaluation; press `=`, close a bracket, press Enter or leave the editor to calculate. The edited field's old answer is hidden while pending. Sliders and animation still update interactively. Greek names are recognized as complete identifiers at commit boundaries; longer names such as `thetaRate` stay intact.
 - Click **⋮ → Settings** in an equation's right controls for direct Math.js syntax, including vectors, functions and units. This field accepts spaces without converting to text. Editing it updates both the evaluated source and the formatted equation on the canvas. Incomplete expressions are displayed literally until they can be formatted. Both source and displayed formula are preserved in JSON. Click the plot's **⚙** control for its series and range settings. These panels float over the page without changing field height.
 
 `fft([1,0,0,0])` and `ifft([1,1,1,1])` can also be typed directly in the visual editor. FFT/IFFT names are recognized as functions, and vectors keep their one-dimensional shape when moving between Math.js source and visual notation. Other named functions entered through ƒ are rendered as named operators on the canvas. Advanced syntax outside the visual adapter's subset remains most reliable in ƒ.
 - Every recalculation starts with an empty scope and evaluates math and plots by top edge (`y`), then left edge (`x`), then document order for exact ties. A variable must be defined above its use. Moving or deleting a definition recalculates downstream regions. Text and images do not affect scope. Each failing region shows its own error; subsequent regions continue without that region's assignments.
 - The starter circular-orbit calculation uses SI numbers: Earth's gravitational parameter, a 400 km altitude, orbital velocity (~7672.6 m/s), and period (~5544.9 s). A plot shows circular speed as a function of radius. These are illustrative two-body calculations.
-- Paste an image copied from a screenshot tool or image editor with Ctrl+V / Cmd+V. The paste creates an independent image region even when an editor is focused. Ordinary text paste remains with the focused editor. **+ Image** provides a file-picker fallback. PNG/JPEG/WebP/GIF up to 8 MB are embedded in the worksheet; new images start at their native pixel size (up to the sheet's 20,000 px dimension limit). Drag the lower-right grip to scale them with a fixed aspect ratio. The hover/selection frame stays tight around the image, including small images. Size is preserved in JSON and Undo/Redo. Older loose image frames are fitted tightly when loaded.
+- Paste an image copied from a screenshot tool or image editor with Ctrl+V / Cmd+V. The paste creates an independent image region even when an editor is focused. Ordinary text paste remains with the focused editor. **Elements → Picture** provides a file-picker fallback after you choose its canvas position. PNG/JPEG/WebP/GIF up to 8 MB are embedded in the worksheet; new images start at their native pixel size (up to the sheet's 20,000 px dimension limit). Drag the lower-right grip to scale them with a fixed aspect ratio. The hover/selection frame stays tight around the image, including small images. Size is preserved in JSON and Undo/Redo. Older loose image frames are fitted tightly when loaded.
 - **Save JSON** downloads geometry, content, visual math, evaluation source, plot settings and embedded images. **Load JSON** replaces the worksheet only after validation succeeds. Save before leaving: there is no automatic persistence.
 - **Undo / Redo** restore recent content and layout changes, including group moves, deletion, images, controls and plot settings. Use Ctrl/Cmd+Z to undo, Ctrl/Cmd+Shift+Z or Ctrl+Y to redo, or the toolbar buttons. Consecutive typing is grouped; a drag is one command. A new edit clears Redo. History stays in this browser session, with up to 60 worksheet states and a memory limit; JSON files contain the current worksheet only.
 
 Notes, images, plots and sections resize from their corner/boundary grip; their menus omit the duplicate resize button. Sliders and option controls retain a menu resize handle because they have no corner grip.
 
 Every field has a **⋮** menu with **Settings**, **Colors**, and **Help** tabs. The first tab contains its settings; the last describes how the element works. Edit the minimized label directly on the minimized field. Under **Colors**, choose a **Background color** and **Box line color**; uncheck the corresponding option for no fill/line. A section's fill colors its header. These are separate presentation properties: they never rewrite math, text, image data, graph settings or geometry. Colors are saved in JSON and support Undo/Redo. The − button minimizes a field and □ restores it.
+
+## Copy, paste and duplicate fields
+
+Ctrl/Cmd-click a field or drag a selection rectangle to select complete objects. Use **Ctrl/Cmd+C**, move the pointer to the destination on the worksheet, then **Ctrl/Cmd+V**. A group keeps its relative layout, formatting, embedded pictures and settings; a section includes its contents. Pasted objects receive new IDs and remain selected. Paste and duplication support Undo/Redo.
+
+Hold **Ctrl** (Cmd on macOS) while dragging a field's left grab handle or an edge to duplicate it. If it belongs to the current selection, the selected group is duplicated. The original stays in place while a translucent preview shows the destination. Dropping a copied section where it would overlap another section is rejected.
+
+Inside an active editor, normal text/math selection copying remains available. MathLive's **Copy → Copy as Math.js** copies the selected expression, or the complete calculation source when there is no selection; the worksheet's trailing answer marker is omitted. Native LaTeX clipboard data can also be pasted as an equation. Plain text retains the existing note-paste behavior.
 
 ## Grouped calculations and field explanations
 
@@ -62,13 +70,13 @@ Text notes support Markdown links: `[Reference](https://example.com)`. Hover ove
 
 Hover over a field and click **Hide field** (−). Only its editable label remains (Equation, Text, Picture, Plot, Slider or Options by default); a blank label leaves the field invisible at rest. Hover to reveal its outline, left grab handle and right-side extension menu, information, restore (□), and delete controls. Click restore to show the content again; double-clicking the label or blank field also restores it. Labels support up to 120 characters, Undo/Redo and JSON save/load. Minimized fields remain available to marquee selection and Select All, and can be dragged by their edges. Definitions and plots still evaluate.
 
-Use **+ Section** to create a full-width horizontal section. With fields selected, the section wraps their vertical span, adding room for its header; all fields between its top and bottom boundaries belong to it, regardless of horizontal position. With nothing selected, an empty section is inserted at the last worksheet pointer position. Click blank paper between its boundaries to add fields normally. Edit its title directly, drag its right move handle to move the section and its contents vertically, or drag its bottom boundary to adjust its height. Sections cannot overlap or nest. Their headers follow the existing canvas width and do not enlarge it.
+Choose **Elements → Section**, then click or tap the canvas to place a full-width horizontal section. With fields selected, **Section around selection** wraps their vertical span, adding room for its header; all fields between its top and bottom boundaries belong to it, regardless of horizontal position. The ordinary Section tool creates an empty section at the clicked vertical position. Click blank paper between its boundaries to add fields normally. Edit its title directly, drag its right move handle to move the section and its contents vertically, or drag its bottom boundary to adjust its height. Sections cannot overlap or nest. Their headers follow the existing canvas width and do not enlarge it.
 
 Click − beside a section title to minimize it, or □ to restore it. Closing hides the contents and pulls the visible sheet below upward without changing logical coordinates or evaluation order. Its header and arrow remain visible. Definitions inside still calculate. Deleting a section deletes its contents and closes its space; Undo restores them together. Enter/Backspace inside an open section adjust its height with the inserted/removed row.
 
 For separate question and solution files, close the Solution section and save JSON, then open it and save again under a different filename. Each file remembers its own open/closed states. Hidden content remains part of the worksheet file.
 
-The **fullscreen button in the upper-right corner** shows the worksheet without the toolbar, instructions or status bar. The corner button remains visible to exit; Esc also exits browser fullscreen. Fullscreen is a viewing mode, not a saved worksheet setting.
+The **fullscreen icon in the canvas menu bar** hides the slim title header and status bar. Canvas controls and insertion palettes remain available; use the icon again or Esc to exit browser fullscreen. Fullscreen is a viewing mode, not a saved worksheet setting.
 
 Math.js calculation syntax is unchanged. A separate programming element and custom loop/block syntax have not been added.
 
@@ -84,7 +92,7 @@ Backspace in an empty equation or text field removes that field and pulls later 
 
 Empty fields are removed when focus leaves them, when you press Escape, or before saving. A newly created empty field remains while you are typing into it. Whitespace-only notes and cleared plot series also count as empty.
 
-Paste text on the worksheet to create a note, including single-word text. In an active text editor it inserts at the caret/replaces the selected text; on a formatted note it appends to the existing Markdown source. Pasting text into an empty equation uses that field as a note; in a nonempty equation it converts the expression to text and inserts at the caret. Pasted images always become independent image fields at the current field/last worksheet click, removing an unused empty placeholder. Pasting into the explicit Math.js/plot settings uses the normal input behavior.
+Paste text on the worksheet to create a note, including single-word text. In an active text editor it inserts at the caret/replaces the selected text; on a formatted note it appends to the existing Markdown source. Pasting text into an empty equation uses that field as a note; in a committed equation it remains mathematical input. Pasted images always become independent image fields at the current field/last worksheet click, removing an unused empty placeholder. Pasting into the explicit Math.js/plot settings uses the normal input behavior.
 
 ## Markdown notes
 
@@ -121,7 +129,7 @@ Add a final `=` to display an answer. Unbased visual `log` and `ln` both mean th
 
 Equations contain no typed spaces. Type `5kg` (or `2*5kg`): when a supported unit suffix is recognized, a small **kg — Tab to accept unit** hint appears. Press **Tab** to accept it. The editor inserts a multiplication dot and shows the unit upright in teal. Before acceptance it is ordinary math input; an undefined unit-like name asks you to press Tab. If that name is already defined above, it remains a variable until you explicitly accept it as a unit. Shift+Tab and Tab without a unit suggestion keep their normal navigation behavior.
 
-Examples: `5kg` → Tab, `10m` → Tab, `2*kg` → Tab. Compound quantities can be built with `*`, `/`, and powers, accepting each unit in turn, for example `5m` → Tab, `/s` → Tab, `^2`. Units use Math.js's registry, including common prefixed units such as `kg`, `km`, `cm`, `ms`, and `kN`. Names are case-sensitive (`N` for newtons). Pressing Space still converts the writing to a note.
+Examples: `5kg` → Tab, `10m` → Tab, `2*kg` → Tab. Compound quantities can be built with `*`, `/`, and powers, accepting each unit in turn, for example `5m` → Tab, `/s` → Tab, `^2`. Units use Math.js's registry, including common prefixed units such as `kg`, `km`, `cm`, `ms`, and `kN`. Names are case-sensitive (`N` for newtons). Space inserts a separator and the field remains an equation.
 
 Powers work in either order: type `5m^2` then Tab, or type `5m`, press Tab, then type `^2`. Both mean **5·m²**, not (5·m)². To square the whole quantity, use parentheses around the quantity. As with other MathLive superscripts, press the right arrow to leave an exponent before continuing on the baseline.
 
@@ -129,7 +137,7 @@ Accepted units are stored in LaTeX with a semantic marker and evaluate as explic
 
 ## Slider and radio variables
 
-Use **+ Slider** for a continuous variable and **+ Options** for radio-button choices. Hover and open the right **⚙ Variable settings** control to edit the variable name and settings. Names such as `a`, `theta`, `mass`, and `a_1` work. A control defines its variable at its position in worksheet order, just like an equation; put dependent equations and plots below it. A later definition with the same name replaces the earlier value.
+Use **Elements → Slider** for a continuous variable and **Elements → Selector** for radio-button choices. Hover and open the right **⚙ Variable settings** control to edit the variable name and settings. Names such as `a`, `theta`, `mass`, and `a_1` work. A control defines its variable at its position in worksheet order, just like an equation; put dependent equations and plots below it. A later definition with the same name replaces the earlier value.
 
 A slider displays `a = 1`, `a ∈ [0, 10]`, and `Δa = 0.1`. Edit **Minimum**, **Maximum**, **Step Δ**, and **Current value**. Settings accept numeric Math.js expressions and variables defined above, such as `pi/10`. Values snap to the step grid anchored at the minimum and clamp to the allowed range. The variable is numeric, and moving the slider or pressing arrow keys recalculates later equations and plots immediately.
 
@@ -207,3 +215,50 @@ Library references: [Vite](https://vite.dev/guide/), [Math.js expressions](https
 To change the default worksheet, create it in the app, choose **Save JSON**, and replace src/example.json with the downloaded file. Commit and publish the change. The example is validated using the same loader as **Load JSON**.
 
 
+
+
+### Native Math.js editing
+
+Check **⋮ → Settings → Native Math.js** for a resizable monospace source editor. Enter adds a line; Ctrl/Cmd+Enter or leaving the editor calculates. Native source evaluates as Math.js expressions, with a separate teal read-only result underneath. Pending edits hide the previous answer. Copy selected source normally, or select result text to copy it. Source, mode and editor size are saved in worksheet JSON.
+
+Switching back to graphical notation checks the expression structure and refuses conversions that cannot preserve its meaning. The settings source box also supports multiple lines and resizing; use Ctrl/Cmd+Enter or blur to calculate. The settings panel stays anchored while the equation grows and can be resized.
+
+Native result visibility is controlled by **Show Math.js result** in Settings and saved with the field. Switching back to graphical notation does not add an answer; graphical answers require an explicit trailing `=`.
+
+### Canvas, print guides and Contents
+
+The canvas grows vertically as you scroll. At 100%, blank paper uses the available screen width; existing wide content remains accessible without moving it. Use the zoom percentage, +/−, or **Fit width** to adjust the view. **Previous screen / Next screen** move one visible canvas height independently of print boundaries.
+
+**Print area** overlays repeating A4 portrait or landscape page outlines with 15 mm margin guides. Switching guides never moves fields or changes calculation order. **Print / PDF** opens the browser print dialog; choose Save as PDF there if needed. Guides, toolbars, selection frames and menus are excluded from printing. Place content within the desired page areas yourself; objects crossing a boundary may be split or clipped.
+
+Open any element's **⋮ → Settings → Label / anchor (#Name)** and enter a label such as `#Example 1`. Its existing minimized label is the same property. **Contents** lists these markers in worksheet order, including expanded, minimized and collapsed elements. Blank text fields with a named anchor are retained. Clicking an entry preserves zoom and jumps to that element; a containing collapsed section is revealed, while a section targeted directly keeps its collapsed state. Previous/next anchor buttons and **Alt+PageUp / Alt+PageDown** navigate the list; keyboard navigation is inactive inside editors. The sidebar overlays the canvas, and on smaller screens closes after selecting an entry. Navigation never changes mathematical order.
+
+Anchor labels, print-guide selection and zoom are saved in worksheet JSON. Older files remain supported. The vertical geometry limit is now 1,000,000 worksheet pixels; horizontal coordinates and image dimensions retain their existing limits. Existing file-size and field-count limits still apply.
+
+**Print scale** (25–200%) is independent of screen zoom and saved with the worksheet. At 80%, each A4 guide covers 25% more worksheet width and height, while the printed content is reduced to 80%. Fonts and element positions on screen stay unchanged. Guides show the corresponding page breaks and physical 15 mm margins. Fit width explicitly fits the scaled guide width when guides are enabled. Older worksheets default to 100% print scale.
+
+### Elements palette
+
+The right-hand **Elements** button expands a stationary two-column palette: Math, Text, Picture, Plot, Slider, Selector, and Section. Selecting a tool waits for a click or tap on the canvas; the upper-left corner is placed there (sections use the full width). Escape, Cancel placement, or closing the palette cancels placement. The palette stays open for repeated use and does not change canvas zoom or layout. Picture asks for a file after placement, retaining that position. **Section around selection** is available when non-section fields are selected. The palette is hidden when printing. The insertion palettes are available.
+
+### Greek palette
+
+The right-hand **Greek** topic opens a compact six-column grid of 34 common lower- and uppercase Greek symbols. Select an equation or open a text note first. Clicking a symbol preserves the caret or selected range and inserts graphical notation into MathLive, the corresponding name (such as `theta`) into native Math.js or the Settings source editor, and the Unicode letter into a note. Buttons show symbol names in tooltips. Elements and Greek are mutually exclusive; both palettes stay clear of the scrollbar and are excluded from printouts. New sliders start at 280 px wide; existing saved or resized sliders retain their widths.
+
+### Beginner Functions palette
+
+The right-hand **Functions** topic opens a stationary 5 × 3 grid: square root, nth root, square, general power, absolute value, natural/base-10/arbitrary-base logarithms, exponential, pi, sine/cosine/tangent, bounded summation, and vector mapping. Tooltips show plain-language names and Math.js syntax. Select an expression to use it as the first argument, or insert into an empty equation and fill the placeholders. Tab navigates placeholders in graphical and native editors; Shift+Tab moves backward in native templates. Native source and the Settings source box receive Math.js syntax (`log(x,b)`, `nthRoot(x,n)`, `sumOver(expression,k,lower,upper)`, `map(vector,f)`). The palette requires a focused equation, stays open for repeated use, shares the dock with Elements and Greek, and is hidden for printing. Functions insert notation without forcing a calculation; the existing editor commit keys still apply.
+
+### Units and physics constants palette
+
+The **Units** topic provides ten accepted unit tokens: m, s, kg, N, J, W, Pa, Hz, V and A. They insert at the active graphical/native equation cursor; choosing a unit while a quantity is selected attaches the unit to that quantity. Explicit unit calls preserve meaning even if a worksheet variable has the same name. No Tab acceptance is needed for palette units.
+
+A Physics constants group demonstrates six named Math.js values: `planckConstant`, `gravitationConstant`, `gravity`, `speedOfLight`, `elementaryCharge`, and `boltzmann`. G (the gravitational constant) and g₀ (standard gravity) are distinct. Constants retain their Math.js names and physical units; the palette does not define short aliases or paste numeric approximations. Tooltips show values supplied by the installed Math.js version, and **Browse more constants** links to its larger catalog.
+
+### Document toolbar and title
+
+Load, Save, Undo, Redo and Fullscreen use icons with tooltips in the canvas menu bar. The reduced-height header contains an editable worksheet title/topic. Titles are stored in JSON, restored on load, included in Undo/Redo, and used for suggested download filenames. Older files show their filename as the initial title. Plot properties scroll in one outer menu rather than nested scroll areas.
+
+### Matrix & vectors palette
+
+The **Matrix & vectors** topic contains 1D vectors, three-entry column vectors, 2×2 and 3×3 matrix templates, transpose, determinant, inverse, dot and cross products, vector norm, identity and zero matrices. Select an existing expression to use it as the first argument; Tab navigates cells and remaining arguments. Native editors receive explicit Math.js syntax. Operations use named functions (`transpose`, `det`, `inv`, `dot`, `cross`, `norm`, `identity`, `zeros`) so matrix operations retain their meaning when switching between native and graphical views. A 1D vector and a column matrix retain their distinct dimensions.

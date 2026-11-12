@@ -1,10 +1,11 @@
+import {MAX_CANVAS_Y} from './canvas-geometry.js';
 import { ordered } from './engine.js';
 export const ROW_HEIGHT=38;
 export function insertRowAfter(regions,id,height=ROW_HEIGHT) {
   const order=ordered(regions),index=order.findIndex(r=>r.id===id);
   if(index<0)return;
   const later=order.slice(index+1);
-  if(later.some(r=>r.y+height>20000))throw Error('No room to insert another row at the edge of the worksheet.');
+  if(later.some(r=>r.y+height>MAX_CANVAS_Y))throw Error('No room to insert another row at the edge of the worksheet.');
   for(const r of later)r.y+=height;
 }
 export function removeRowAfter(regions,id,height=ROW_HEIGHT) {
@@ -23,6 +24,6 @@ export function removeCanvasRow(regions,point,height=ROW_HEIGHT) {
 }
 export function moveGroup(items,dx,dy) {
   dx=Math.max(-Math.min(...items.map(item=>item.x)),Math.min(dx,20000-Math.max(...items.map(item=>item.x))));
-  dy=Math.max(-Math.min(...items.map(item=>item.y)),Math.min(dy,20000-Math.max(...items.map(item=>item.y))));
+  dy=Math.max(-Math.min(...items.map(item=>item.y)),Math.min(dy,MAX_CANVAS_Y-Math.max(...items.map(item=>item.y))));
   return items.map(item=>({...item,x:item.x+dx,y:item.y+dy}));
 }

@@ -1,3 +1,4 @@
+import {canvasPoint,canvasZoom} from './canvas-geometry.js';
 export function selectionTool(canvas, { elements, create, changed }) {
   const selected=new Set();
   function refresh() {
@@ -13,6 +14,7 @@ export function selectionTool(canvas, { elements, create, changed }) {
     if(event.button!==0)return;
     const region=event.target.closest('.region');
     const additive=event.ctrlKey||event.metaKey||event.shiftKey;
+    if(region && event.target.closest('.move-handle,.move-edge'))return;
     if(region && additive && !event.target.closest('.region-settings')) {
       event.preventDefault();event.stopImmediatePropagation();
       if(selected.has(region.dataset.id))selected.delete(region.dataset.id);else selected.add(region.dataset.id);
@@ -21,22 +23,22 @@ export function selectionTool(canvas, { elements, create, changed }) {
     if(region){if(!selected.has(region.dataset.id))clear();return;}
     if(event.target!==canvas)return;
     event.preventDefault();event.stopImmediatePropagation();canvas.focus();
-    const box=canvas.getBoundingClientRect(),start={x:event.clientX-box.left,y:event.clientY-box.top};
+    const start=canvasPoint(canvas,event);
     const original=new Set(additive?selected:[]);
     if(!additive)clear();
     canvas.setPointerCapture(event.pointerId);
     const marquee=document.createElement('div');marquee.className='selection-marquee';canvas.append(marquee);
     let dragged=false;
     const move=e=>{
-      const current=canvas.getBoundingClientRect(),x=e.clientX-current.left,y=e.clientY-current.top;
-      if(Math.hypot(x-start.x,y-start.y)>4)dragged=true;
+      const current=canvas.getBoundingClientRect(),zoom=canvasZoom(canvas),{x,y}=canvasPoint(canvas,e);
+      if(Math.hypot(x-start.x,y-start.y)*zoom>4)dragged=true;
       if(!dragged)return;
       const left=Math.min(x,start.x),top=Math.min(y,start.y),width=Math.abs(x-start.x),height=Math.abs(y-start.y);
       Object.assign(marquee.style,{left:`${left}px`,top:`${top}px`,width:`${width}px`,height:`${height}px`});
       selected.clear();for(const id of original)selected.add(id);
       for(const el of elements()) {
-        const b=(el.querySelector('.section-bar') || el).getBoundingClientRect(),ex=b.left-current.left,ey=b.top-current.top;
-        if(ex<left+width && ex+b.width>left && ey<top+height && ey+b.height>top)selected.add(el.dataset.id);
+        const b=(el.querySelector('.section-bar') || el).getBoundingClientRect(),ex=(b.left-current.left)/zoom,ey=(b.top-current.top)/zoom;
+        if(ex<left+width && ex+b.width/zoom>left && ey<top+height && ey+b.height/zoom>top)selected.add(el.dataset.id);
       }
       refresh();
     };

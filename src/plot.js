@@ -1,7 +1,7 @@
 import {plotArea,fitPlot,equalizePlot,plotTicks} from './plot-view.js';
 import {seriesStyle,drawMarker} from './plot-styles.js';
 export function drawPlot(canvas,series,r={}) {
-  const ctx=canvas.getContext('2d'),box=canvas.getBoundingClientRect(),width=Math.max(1,box.width),height=Math.max(1,box.height),dpr=window.devicePixelRatio||1;
+  const ctx=canvas.getContext('2d'),width=Math.max(1,canvas.clientWidth),height=Math.max(1,canvas.clientHeight),dpr=window.devicePixelRatio||1;
   canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,width,height);
   const area=plotArea(width,height,r);
   if(!r.plotView)r.plotView=fitPlot(series,area,r.equalScale);

@@ -33,9 +33,9 @@ test('radio options define a variable, recalculate, and persist selected values 
   await expect(page.locator('[data-id="eq"] output')).toContainText('12.5663706');
   await page.screenshot({path:'test-results/radio-preview.png'});
 });
-test('controls can be added from the toolbar and invalid settings get an error outline',async({page})=>{
-  await load(page,[]);await page.getByRole('button',{name:'+ Slider',exact:true}).click();await expect(page.locator('.slider')).toHaveCount(1);
-  const box=await page.locator('#canvas').boundingBox();await page.mouse.move(box.x+600,box.y+350);await page.getByRole('button',{name:'+ Options',exact:true}).click();await expect(page.locator('.radio')).toHaveCount(1);
+test('controls can be placed from Elements and invalid settings get an error outline',async({page})=>{
+  await load(page,[]);await page.getByRole('button',{name:'Elements',exact:true}).click();await page.locator('#elements-palette').getByRole('button',{name:'Slider',exact:true}).click();const paper=await page.locator('#canvas').boundingBox();await page.mouse.click(paper.x+100,paper.y+100);await expect(page.locator('.slider')).toHaveCount(1);
+  const box=await page.locator('#canvas').boundingBox();await page.locator('#elements-palette').getByRole('button',{name:'Selector',exact:true}).click();await page.mouse.click(box.x+600,box.y+350);await expect(page.locator('.radio')).toHaveCount(1);
   await page.locator('.slider').hover();await page.locator('.slider').getByLabel('Field properties',{exact:true}).click();
   await page.getByLabel('Minimum',{exact:true}).fill('20');await expect(page.locator('.slider')).toHaveClass(/has-error/);
   await page.getByLabel('Minimum',{exact:true}).fill('0');await expect(page.locator('.slider')).not.toHaveClass(/has-error/);

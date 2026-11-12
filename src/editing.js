@@ -1,20 +1,24 @@
 import { MathfieldElement, convertAsciiMathToLatex } from 'mathlive';
 import { isUnit, unitToken, unitSource } from './units.js';
 import { squareMatrices,configureMatrixMenu } from './matrices.js';
-import { requestsResult } from './equations.js';
+import { requestsResult,evaluationSource,recognizesMath } from './equations.js';
+import {writeClipboardText} from './clipboard.js';
 import {groupRows,groupLatex,atStatementLevel} from './groups.js';
 import {compactIdentifiers} from './expressions.js';
 import {functionShortcuts,normalizeFunctionCalls} from './function-mappings.js';
 import {formatVisualCalls} from './visual-call-format.js';
+import {greekIdentifiers} from './greek-symbols.js';
 
 // Capture an actual space key/paste, not whitespace added by the ASCII exporter.
 export function mathEditor(r, { change, toText, nextLine, previousLine }) {
   const field = new MathfieldElement();
   field.className = 'expression';
-  const initial=compactIdentifiers(normalizeFunctionCalls(squareMatrices(r.latex)));
+  const initial=compactIdentifiers(normalizeFunctionCalls(squareMatrices(greekIdentifiers(r.latex,true))));
   const rebuildSource=r.unitMode==='explicit' || (initial!==r.latex && r.unitMode!=='raw');
   r.latex=initial;
   field.value = r.latex;
+  if(r.unitMode==='raw' || recognizesMath(r.latex))r.equationMode=true;
+  let lastNotifiedLatex=field.value;
   function updateSource(){
     try{r.source=unitSource(r.latex);delete r.conversionError;}
     catch(error){r.source='';r.conversionError=error.message;}
@@ -29,7 +33,14 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
     templates={...field.inlineShortcuts,...functionShortcuts};
     field.inlineShortcuts=Object.fromEntries(Object.entries(templates).filter(([name])=>!/[A-Za-z]/.test(name)));
     field.onInlineShortcut=()=>'';
-    configureMatrixMenu(field);
+    configureMatrixMenu(field,async()=>{
+      try{
+        const ranges=field.selection.ranges.filter(([a,b])=>a!==b);
+        const source=ranges.length?ranges.map(([a,b])=>evaluationSource(unitSource(field.getValue(Math.min(a,b),Math.max(a,b),'latex')))).join(';'):evaluationSource(r.source);
+        if(!ranges.length && r.conversionError)throw Error(r.conversionError);
+        await writeClipboardText(source);field.dispatchEvent(new CustomEvent('worksheet-message',{bubbles:true,detail:'Copied as Math.js.'}));
+      }catch(error){field.dispatchEvent(new CustomEvent('worksheet-message',{bubbles:true,detail:`Cannot copy as Math.js: ${error.message}`}));}
+    });
   });
   const hint = document.createElement('span'); hint.className = 'unit-hint'; hint.hidden = true;
   hint.setAttribute('role', 'status');
@@ -54,35 +65,41 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
     hint.textContent = match ? `${match.name} — Tab to accept unit` : '';
   }
   const changed = () => {
-    const normalized=normalizeFunctionCalls(squareMatrices(field.value)),squared=compactIdentifiers(normalized);
+    if(field.value===lastNotifiedLatex)return;
+    delete r.showAnswer;
+    const normalized=normalizeFunctionCalls(squareMatrices(greekIdentifiers(field.value))),squared=compactIdentifiers(normalized);
     if(squared!==field.value){
       const selection=field.selection,last=field.lastOffset,adjust=normalized!==field.value;
       field.setValue(squared,{silenceNotifications:true});const delta=adjust?field.lastOffset-last:0;
       field.selection={...selection,ranges:selection.ranges.map(([a,b])=>[Math.max(0,a+delta),Math.max(0,b+delta)])};
     }
     r.latex = field.value;
+    if(recognizesMath(r.latex))r.equationMode=true;
+    lastNotifiedLatex=field.value;
     updateSource();
     if(requestsResult(r.source) && field.position===field.lastOffset && commitDisplay())return;
-    change(); suggest();
+    change({commit:false}); suggest();
   };
   field.addEventListener('input', changed);
   field.addEventListener('selection-change', suggest);
   function commitDisplay(){
-    const formatted=formatVisualCalls(field.value);if(formatted===field.value)return false;
-    field.setValue(formatted,{silenceNotifications:true});field.position=field.lastOffset;r.latex=field.value;updateSource();change();
+    const formatted=formatVisualCalls(greekIdentifiers(field.value,true));if(formatted===field.value)return false;
+    field.setValue(formatted,{silenceNotifications:true});field.position=field.lastOffset;r.latex=field.value;lastNotifiedLatex=field.value;updateSource();change({commit:false});
     return true;
   }
-  field.addEventListener('blur', () => { hint.hidden=true;commitDisplay(); });
-  field.addEventListener('keyup',event=>{if((event.key===')' || event.key==='=') && field.position===field.lastOffset)commitDisplay();},true);
-  const plainText = latex => unitSource(latex).replace(/unit\("([A-Za-z]+)"\)/g, '$1').replace(/\s+/g, '');
-  const asText = () => plainText(field.value);
-  function insertText(text) {
-    const prefix = plainText(field.getValue(0, field.position, 'latex'));
-    const current = asText();
-    toText(current.slice(0, prefix.length) + text + current.slice(prefix.length), prefix.length + text.length);
+  function commitCalculation(force=false){
+    if(r.unitMode==='raw' && field.value===lastNotifiedLatex){change({commit:true});return;}
+    const atEnd=field.position===field.lastOffset,selection=field.selection,last=field.lastOffset;
+    const normalized=compactIdentifiers(normalizeFunctionCalls(squareMatrices(greekIdentifiers(field.value,force || atEnd))));
+    if(normalized!==field.value){field.setValue(normalized,{silenceNotifications:true});const delta=field.lastOffset-last;field.selection={...selection,ranges:selection.ranges.map(([a,b])=>[Math.max(0,a+delta),Math.max(0,b+delta)])};}
+    if(force || atEnd)commitDisplay();r.latex=field.value;if(recognizesMath(r.latex))r.equationMode=true;updateSource();lastNotifiedLatex=field.value;change({commit:true});
   }
+  field.addEventListener('focus',()=>{if(r.unitMode==='raw')lastNotifiedLatex=field.value;});
+  field.addEventListener('blur', () => { hint.hidden=true;commitCalculation(true); });
+  field.addEventListener('keyup',event=>{if([')',']','}','='].includes(event.key))commitCalculation();},true);
   field.addEventListener('keydown', event => {
     if (event.isComposing || event.ctrlKey || event.metaKey || event.altKey) return;
+    if(/[=+\-*/^()[\]]/.test(event.key) && event.key.length===1)r.equationMode=true;
     const grouped=!!groupRows(field.value),depth=field.getElementInfo(field.position)?.depth ?? 0;
     if(event.key===';' && depth<=(grouped?1:0) && atStatementLevel(field.getValue(0,field.position,'latex'))) {
       event.preventDefault();event.stopImmediatePropagation();
@@ -120,22 +137,15 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
       field.applyStyle({ color: 'none', fontFamily: 'none' });
       changed(); hint.hidden=true;
     } else if (event.key === ' ') {
-      event.preventDefault(); event.stopImmediatePropagation(); insertText(' ');
+      event.preventDefault(); event.stopImmediatePropagation();if(!field.value.trim())toText('',0);else {field.insert('\\;',{format:'latex',selectionMode:'after'});changed();}
     } else if (event.key === 'Enter') {
-      event.preventDefault(); event.stopImmediatePropagation(); nextLine();
+      event.preventDefault(); event.stopImmediatePropagation();commitCalculation();nextLine();
     } else if (event.key === 'Escape') { field.blur(); }
-  }, true);
-  field.addEventListener('paste', event => {
-    if ([...(event.clipboardData?.items || [])].some(item => item.type.startsWith('image/'))) return;
-    const text = event.clipboardData?.getData('text/plain');
-    if (text && /\s/.test(text)) {
-      event.preventDefault(); event.stopImmediatePropagation(); insertText(text);
-    }
   }, true);
   // Keyboard entry, mobile input, and MathLive's virtual space key.
   field.addEventListener('beforeinput', event => {
     if (event.data === ' ') {
-      event.preventDefault(); event.stopImmediatePropagation(); insertText(' ');
+      event.preventDefault(); event.stopImmediatePropagation();if(!field.value.trim())toText('',0);else {field.insert('\\;',{format:'latex',selectionMode:'after'});changed();}
     }
   });
   return field;
@@ -149,12 +159,14 @@ export function resultEditor() {
 }
 
 export function updateResult(view, result, r) {
-  const visible=r.type!=='math' || (!r.displayOnly && requestsResult(r.source));
+  const visible=r.type!=='math' || (!r.displayOnly && (r.displayMode==='source'?r.showNativeResult!==false:requestsResult(r.source)));
   view.output.classList.toggle('error', !!result.error);
   view.output.textContent = result.error || (visible && result.text ? `= ${result.text}` : '');
-  if (!view.result) return;
   const long=result.collection?.count>12;
   if(view.vectorToggle){view.vectorToggle.hidden=!visible||!long||!!result.error;view.vectorToggle.textContent=r.showVector?'Hide values':`Show ${result.collection?.count} values`;}
+  view.resultText=result.text || '';
+  if(r.displayMode==='source'){view.output.textContent=result.error || (visible && result.text?`→ ${long && !r.showVector?'[…]' : result.text}`:'');if(view.nativeStatus)view.nativeStatus.hidden=true;return;}
+  if(!view.result)return;
   view.result.hidden = !visible || !!result.error || !result.text;
   // An explicitly typed trailing '=' is already rendered by the expression.
   const equal = requestsResult(r.source) ? '' : '=';
