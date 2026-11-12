@@ -5,7 +5,7 @@ import { evaluateControl } from './control-values.js';
 import { evaluationSource } from './equations.js';
 import {statements} from './groups.js';
 
-// MathLive's ASCII export is deliberately adapted only for elementary algebra.
+// Compatibility normalization for older saved source expressions.
 export function normalize(source) {
   return source.replace(/:=/g, '=').replace(/π/g, 'pi').replace(/\\pi\b/g, 'pi')
     .replace(/\b([A-Za-z]+)_\((\w+)\)/g, '$1_$2');

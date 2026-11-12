@@ -1,29 +1,6 @@
-import {parse} from 'mathjs';
-import {sourceToLatex} from './expressions.js';
-import {unitSource} from './units.js';
-import {evaluationSource} from './equations.js';
-import {statements} from './groups.js';
-import {normalize} from './engine.js';
 import {canvasZoom} from './canvas-geometry.js';
 
-function canonical(node){
-  if(node?.isParenthesisNode)return canonical(node.content);
-  if(node?.isFunctionNode && ['log10','log2'].includes(node.fn.name) && node.args.length===1)return canonical(parse(`log(${node.args[0].toString()},${node.fn.name==='log10'?10:2})`));
-  if(node?.isNode)return canonical(node.toJSON());
-  if(Array.isArray(node))return node.map(canonical);
-  if(node && typeof node==='object')return Object.fromEntries(Object.entries(node).filter(([key])=>key!=='implicit').map(([key,value])=>[key,canonical(value)]));
-  return node;
-}
-export function safeGraphicalLatex(source,previousLatex){
-  try{
-    const original=statements(source).filter(row=>row.trim()).map(row=>canonical(parse(row)));
-    for(const latex of [previousLatex,sourceToLatex(source)]){
-      if(!latex)continue;
-      try{const converted=statements(unitSource(latex)).filter(row=>row.trim()).map(row=>canonical(parse(normalize(evaluationSource(row)))));if(JSON.stringify(original)===JSON.stringify(converted))return latex;}catch{/* Try the generated form next. */}
-    }
-  }catch{/* Invalid source stays available in the source editor. */}
-  return null;
-}
+export {projectMathjs as safeGraphicalLatex} from './math-translation.js';
 
 export function nativeEditor(r,changed){
   const editor=document.createElement('textarea');editor.className='native-source-editor';editor.setAttribute('aria-label','Math.js source');editor.spellcheck=false;editor.wrap='off';editor.value=r.source;

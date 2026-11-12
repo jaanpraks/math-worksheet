@@ -21,7 +21,7 @@ import { ordered } from './engine.js';
 import { selectionTool } from './selection.js';
 import { insertRowAfter,removeRowAfter,removeCanvasRow,moveGroup,ROW_HEIGHT } from './layout.js';
 import { emptyRegion,replaceTextSelection,duplicateObjects,readObjectClipboard,OBJECT_CLIPBOARD_TYPE,OBJECT_CLIPBOARD_PREFIX } from './clipboard.js';
-import { unitSource } from './units.js';
+import {compileGraphical} from './math-translation.js';
 import { mountControl } from './controls.js';
 import { sourceToLatex } from './expressions.js';
 import { createHistory } from './history.js';
@@ -241,7 +241,7 @@ function render(focusId, caret) {
   for(const view of views.values())view.dispose?.();
   canvas.replaceChildren(); views.clear();
   for (const r of regions) {
-    if(r.type==='math' && r.unitMode==='raw' && !r.displayMode)r.latex=sourceToLatex(r.source);
+
     const el = document.createElement('section'); el.className = `region ${r.type}`; el.dataset.id = r.id; place(el,r);updateFieldChrome(r,el);
     const head = document.createElement('div'); head.className = 'region-head';
     const title = document.createElement('span'); title.textContent = '⠿'; title.title = 'Drag to move';
@@ -260,7 +260,7 @@ function render(focusId, caret) {
     } else if (r.type === 'math') {
       function mathChanged({commit=false}={}){
         if(rendering || !el.isConnected || views.get(r.id)!==view)return;
-        raw.value=r.source;updateFieldChrome(r,el);if(view.nativeStatus)view.nativeStatus.hidden=commit;
+        raw.value=r.source;raw.setAttribute('aria-invalid',String(!!r.conversionError));sourceStatus.hidden=!r.conversionError;sourceStatus.textContent=r.conversionError?`${r.conversionError} Last valid Math.js source is shown above.`:'';updateFieldChrome(r,el);if(view.nativeStatus)view.nativeStatus.hidden=commit;
         if(commit){pendingMathEdits.delete(r.id);recalculate();}
         else {pendingMathEdits.add(r.id);el.classList.add('pending-evaluation');el.classList.remove('has-error');output.textContent='';view.resultText='';output.classList.remove('error');if(view.result)view.result.hidden=true;if(view.vectorToggle)view.vectorToggle.hidden=true;recordHistory();}
       }
@@ -284,8 +284,9 @@ function render(focusId, caret) {
       const settings=document.createElement('div'); settings.className='region-settings'; details.append(settings);
       const modeLabelNative=document.createElement('label'),mode=document.createElement('input');mode.type='checkbox';mode.checked=native;mode.setAttribute('aria-label','Native Math.js');modeLabelNative.className='result-visibility';modeLabelNative.append(mode,document.createTextNode('Native Math.js'));settings.append(modeLabelNative);
       mode.onchange=()=>{
+        if(mode.checked && r.conversionError){mode.checked=false;message('Complete or correct the graphical expression before switching to native Math.js. The last valid source is retained in Settings.');return;}
         if(!mode.checked){
-          const latex=safeGraphicalLatex(r.source,r.latex);
+          const latex=safeGraphicalLatex(r.source);
           if(latex===null){mode.checked=true;message('This expression cannot be converted safely. Continue editing in native Math.js mode.');return;}
           r.latex=latex;
         }else if(/=\s*$/.test(r.source) && !/[<>=!]=\s*$/.test(r.source))r.source=r.source.replace(/=\s*$/,'');
@@ -294,9 +295,10 @@ function render(focusId, caret) {
       const answerLabel=document.createElement('label'),answer=document.createElement('input');answer.type='checkbox';answer.checked=r.showNativeResult!==false;answer.disabled=!native;answer.setAttribute('aria-label','Show Math.js result');answer.onchange=()=>{r.showNativeResult=answer.checked;recalculate();};answerLabel.className='result-visibility';answerLabel.classList.toggle('disabled-setting',!native);answerLabel.append(answer,document.createTextNode('Show Math.js result'));settings.append(answerLabel);
       const raw=document.createElement('textarea');raw.value=r.source;raw.className='math-source-settings';raw.setAttribute('aria-label','Math.js expression');raw.spellcheck=false;settings.append(raw);
       settings.prepend(raw);
+      const sourceStatus=document.createElement('small');sourceStatus.className='source-conversion-status';sourceStatus.setAttribute('role','status');sourceStatus.hidden=!r.conversionError;sourceStatus.textContent=r.conversionError?`${r.conversionError} Last valid Math.js source is shown above.`:'';raw.setAttribute('aria-invalid',String(!!r.conversionError));raw.after(sourceStatus);
       raw.addEventListener('input',()=>{
         r.source=raw.value;r.unitMode='raw';delete r.conversionError;
-        if(native){field.value=r.source;view.fitSource();}else {r.latex=sourceToLatex(r.source);field.setValue(r.latex,{silenceNotifications:true});}
+        if(native){field.value=r.source;view.fitSource();}else field.synchronizeMathSource(r.source);
         mathChanged({commit:false});
       });
       raw.addEventListener('keydown',event=>{if(event.key==='Enter' && (event.ctrlKey||event.metaKey)){event.preventDefault();mathChanged({commit:true});}});
@@ -476,7 +478,7 @@ document.addEventListener('paste', async event => {
   if(latex && !images.length){
     if(r?.type==='math')return; // MathLive handles its native mathematical clipboard.
     event.preventDefault();event.stopImmediatePropagation();const math=region('math',pasteAnchor.x,pasteAnchor.y);math.latex=latex;math.unitMode='explicit';
-    try{math.source=unitSource(latex);}catch(error){math.source='';math.conversionError=error.message;}
+    try{math.source=compileGraphical(latex);}catch(error){math.source='';math.conversionError=error.message;}
     insertObjectCopies([math]);message('Pasted equation.');return;
   }
   if(images.length) {

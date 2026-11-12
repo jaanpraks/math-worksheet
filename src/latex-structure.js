@@ -2,12 +2,12 @@ export function readLatexGroup(text,index){
   while(/\s/.test(text[index] || '') && index<text.length)index++;
   const start=index;if(text.startsWith('\\left',index))index+=5;
   const close={'{':'}','(':')','[':']'}[text[index]];if(!close)return null;
-  const contentStart=index+1,stack=[close];index++;
+  const contentStart=index+1,stack=[close],bracesOnly=text[index]==='{';index++;
   for(;index<text.length;index++){
     if(text[index]==='\\'){
       const command=text.slice(index).match(/^\\[A-Za-z]+/);if(command){index+=command[0].length-1;continue;}index++;continue;
     }
-    const closing={'{':'}','(':')','[':']'}[text[index]];if(closing)stack.push(closing);
+    const closing=(bracesOnly?{'{':'}'}:{'{':'}','(':')','[':']'})[text[index]];if(closing)stack.push(closing);
     else if(text[index]===stack.at(-1)){stack.pop();if(!stack.length)return {start,content:text.slice(contentStart,index).replace(/\\right\s*$/,''),end:index+1};}
   }
   return null;

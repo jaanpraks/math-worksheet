@@ -1,30 +1,32 @@
 import { MathfieldElement, convertAsciiMathToLatex } from 'mathlive';
 import { isUnit, unitToken, unitSource } from './units.js';
-import { squareMatrices,configureMatrixMenu } from './matrices.js';
+import {configureMatrixMenu} from './matrices.js';
 import { requestsResult,evaluationSource,recognizesMath } from './equations.js';
 import {writeClipboardText} from './clipboard.js';
 import {groupRows,groupLatex,atStatementLevel} from './groups.js';
-import {compactIdentifiers} from './expressions.js';
-import {functionShortcuts,normalizeFunctionCalls} from './function-mappings.js';
-import {formatVisualCalls} from './visual-call-format.js';
-import {greekIdentifiers} from './greek-symbols.js';
+import {sourceToLatex} from './expressions.js';
+import {functionShortcuts} from './function-mappings.js';
+import {compileGraphical,projectMathjs} from './math-translation.js';
 
 // Capture an actual space key/paste, not whitespace added by the ASCII exporter.
 export function mathEditor(r, { change, toText, nextLine, previousLine }) {
   const field = new MathfieldElement();
   field.className = 'expression';
-  const initial=compactIdentifiers(normalizeFunctionCalls(squareMatrices(greekIdentifiers(r.latex,true))));
-  const rebuildSource=r.unitMode==='explicit' || (initial!==r.latex && r.unitMode!=='raw');
-  r.latex=initial;
-  field.value = r.latex;
+  let draftError;
+  if(r.unitMode==='explicit')try{compileGraphical(r.latex);}catch(error){draftError=error.message;}
+  field.value=draftError?r.latex:sourceToLatex(r.source);r.latex=field.value;
+  if(draftError)r.conversionError=draftError;else {delete r.conversionError;r.unitMode='raw';}
   if(r.unitMode==='raw' || recognizesMath(r.latex))r.equationMode=true;
   let lastNotifiedLatex=field.value;
   function updateSource(){
-    try{r.source=unitSource(r.latex);delete r.conversionError;}
-    catch(error){r.source='';r.conversionError=error.message;}
+    try{r.source=compileGraphical(r.latex);delete r.conversionError;}
+    catch(error){r.conversionError=error.message;}
     r.unitMode='explicit';
   }
-  if(rebuildSource)updateSource();
+  field.synchronizeMathSource=source=>{
+    r.source=source;r.unitMode='raw';delete r.conversionError;
+    field.setValue(sourceToLatex(source),{silenceNotifications:true});r.latex=field.value;lastNotifiedLatex=field.value;
+  };
   field.setAttribute('aria-label', 'Math expression');
   field.mathVirtualKeyboardPolicy = 'manual';
   field.smartMode = false;
@@ -51,7 +53,7 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
     const end = field.position;
     let token;
     for (let start = end-1; start >= Math.max(0,end-64); start--) {
-      const text=field.getValue(start,end,'ascii-math').replace(/[()\s]/g,'');
+      let text;try{text=unitSource(field.getValue(start,end,'latex')).replace(/[()\s]/g,'');}catch{if(token)break;continue;}
       const match=text.match(/^([A-Za-z]+)(\^[+-]?\d+)?$/);
       if (match) {
         if (!token || text.length > token.text.length) token={name:match[1],power:match[2] || '',start,end,text};
@@ -67,32 +69,22 @@ export function mathEditor(r, { change, toText, nextLine, previousLine }) {
   const changed = () => {
     if(field.value===lastNotifiedLatex)return;
     delete r.showAnswer;
-    const normalized=normalizeFunctionCalls(squareMatrices(greekIdentifiers(field.value))),squared=compactIdentifiers(normalized);
-    if(squared!==field.value){
-      const selection=field.selection,last=field.lastOffset,adjust=normalized!==field.value;
-      field.setValue(squared,{silenceNotifications:true});const delta=adjust?field.lastOffset-last:0;
-      field.selection={...selection,ranges:selection.ranges.map(([a,b])=>[Math.max(0,a+delta),Math.max(0,b+delta)])};
-    }
     r.latex = field.value;
     if(recognizesMath(r.latex))r.equationMode=true;
     lastNotifiedLatex=field.value;
     updateSource();
-    if(requestsResult(r.source) && field.position===field.lastOffset && commitDisplay())return;
     change({commit:false}); suggest();
   };
   field.addEventListener('input', changed);
   field.addEventListener('selection-change', suggest);
-  function commitDisplay(){
-    const formatted=formatVisualCalls(greekIdentifiers(field.value,true));if(formatted===field.value)return false;
-    field.setValue(formatted,{silenceNotifications:true});field.position=field.lastOffset;r.latex=field.value;lastNotifiedLatex=field.value;updateSource();change({commit:false});
-    return true;
-  }
   function commitCalculation(force=false){
     if(r.unitMode==='raw' && field.value===lastNotifiedLatex){change({commit:true});return;}
-    const atEnd=field.position===field.lastOffset,selection=field.selection,last=field.lastOffset;
-    const normalized=compactIdentifiers(normalizeFunctionCalls(squareMatrices(greekIdentifiers(field.value,force || atEnd))));
-    if(normalized!==field.value){field.setValue(normalized,{silenceNotifications:true});const delta=field.lastOffset-last;field.selection={...selection,ranges:selection.ranges.map(([a,b])=>[Math.max(0,a+delta),Math.max(0,b+delta)])};}
-    if(force || atEnd)commitDisplay();r.latex=field.value;if(recognizesMath(r.latex))r.equationMode=true;updateSource();lastNotifiedLatex=field.value;change({commit:true});
+    r.latex=field.value;updateSource();
+    if(!r.conversionError && (force || field.position===field.lastOffset)){
+      const projected=projectMathjs(r.source,{evaluationMarkers:true});
+      if(projected!==null && projected!==field.value){field.setValue(projected,{silenceNotifications:true});field.position=field.lastOffset;}
+    }
+    r.latex=field.value;if(recognizesMath(r.latex))r.equationMode=true;lastNotifiedLatex=field.value;change({commit:true});
   }
   field.addEventListener('focus',()=>{if(r.unitMode==='raw')lastNotifiedLatex=field.value;});
   field.addEventListener('blur', () => { hint.hidden=true;commitCalculation(true); });

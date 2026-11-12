@@ -16,15 +16,6 @@ export const functionMappings={
   productOver:{arity:4,render:args=>`\\prod_{${args[1]}=${args[2]}}^{${args[3]}}\\left(${args[0]}\\right)`}
 };
 export const functionShortcuts=Object.fromEntries(Object.entries(functionMappings).filter(([,rule])=>rule.shortcut).map(([name,rule])=>[name,rule.shortcut]));
-export const visualFunctionNames=Object.fromEntries(Object.entries(functionMappings).filter(([,rule])=>rule.latexCommand).map(([name,rule])=>[rule.latexCommand,name]));
 export function renderFunction(name,args){
   const rule=functionMappings[name];return rule && (rule.arity===undefined || rule.arity===args.length)?rule.render(args):undefined;
-}
-export function normalizeFunctionCalls(latex){
-  // Also recognize a name when its first letter was the seed used to create a
-  // field, or arrived through paste: MathLive's keystroke shortcut buffer then
-  // does not contain the complete name. Do not rewrite styled identifiers/text.
-  return latex.replace(/\\(?:operatorname|mathrm|mathit|text)\{[^{}]*\}|\\[A-Za-z]+|([A-Za-z]+)(?=\\left\(|\()/g,(token,name)=>{
-    if(!name)return token;const rule=functionMappings[name];return rule?.latexCommand || `\\operatorname{${name}}`;
-  });
 }

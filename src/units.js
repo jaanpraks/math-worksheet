@@ -1,5 +1,5 @@
 import { Unit, format, parse } from 'mathjs';
-import { expressionAscii } from './expressions.js';
+import {latexToMathjs} from './latex-to-mathjs.js';
 
 export const UNIT_COLOR = '#137f78';
 export const isUnit = name => /^[A-Za-z]+$/.test(name) && Unit.isValuelessUnit(name);
@@ -8,31 +8,7 @@ export const unitToken = name => `\\htmlData{worksheet-unit=${name}}{${unitLatex
 
 // Keep a semantic unit marker in saved LaTeX; evaluate it as an explicit unit()
 // call so a worksheet variable named 'm' can coexist with the metre unit.
-export function unitSource(latex) {
-  const tokens = [];
-  const replaced = latex;
-  let result = '', index = 0;
-  const pattern = /\\htmlData\{worksheet-unit=([A-Za-z]+)\}\{/g;
-  let match;
-  while ((match = pattern.exec(replaced))) {
-    let end = pattern.lastIndex, depth = 1;
-    for (; end < replaced.length && depth; end++) {
-      if (replaced[end] === '{') depth++;
-      else if (replaced[end] === '}') depth--;
-    }
-    if (depth) break;
-    result += replaced.slice(index, match.index);
-    const body = replaced.slice(pattern.lastIndex, end - 1);
-    const spelling = body.replace(/\\textcolor\{[^{}]*\}/g, '').replace(/\\(?:mathrm|text|operatorname)/g, '').replace(/[{}\s]/g, '');
-    if (spelling === match[1] && isUnit(spelling)) {
-      const id = tokens.push(spelling)-1;
-      result += `\\text{WSUNIT${id}}`;
-    } else result += spelling;
-    index = end; pattern.lastIndex = end;
-  }
-  result += replaced.slice(index);
-  return expressionAscii(result).replace(/"WSUNIT(\d+)"/g, (_, id) => `unit("${tokens[Number(id)]}")`);
-}
+export const unitSource=latexToMathjs;
 
 export function requireAcceptedUnits(source, scope) {
   const tree = parse(source);

@@ -30,7 +30,7 @@ test('sum menu template supports typing through the index, bounds and body',asyn
 test('typing map opens vector and function placeholders and keeps Math.js source syntax',async({page})=>{
   const field=await setup(page);await field.evaluate(el=>el.setValue('',{silenceNotifications:true}));await field.focus();await page.keyboard.type('map');await page.keyboard.press('Tab');await expect.poll(()=>field.evaluate(el=>el.value)).toContain('\\overrightarrow');
   await page.keyboard.type('sqrt');await page.keyboard.press('Tab');await page.keyboard.type('[1,4,9]');await field.evaluate(el=>{el.position=el.lastOffset;});await page.keyboard.type('=');await expect(page.locator('.math output')).toHaveText('= [1, 2, 3]');
-  await page.locator('.math').hover();await page.getByLabel('Field properties',{exact:true}).click();await expect(page.getByLabel('Math.js expression',{exact:true})).toHaveValue('(map([1,4,9],sqrt))=');
+  await page.locator('.math').hover();await page.getByLabel('Field properties',{exact:true}).click();await expect(page.getByLabel('Math.js expression',{exact:true})).toHaveValue('map([1,4,9],sqrt)=');
   const pending=page.waitForEvent('download');await page.getByRole('button',{name:'Save JSON',exact:true}).click();const saved=await pending;await page.reload();await page.locator('#file').setInputFiles(await saved.path());await expect(page.locator('.math output')).toHaveText('= [1, 2, 3]');await expect.poll(()=>page.locator('.expression').evaluate(el=>el.value)).toContain('worksheet-function=1');
 });
 test('function names are not expanded prematurely and completed calls become graphical',async({page})=>{

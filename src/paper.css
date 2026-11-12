@@ -190,3 +190,5 @@ body.fullscreen > header,body.fullscreen > aside,body.fullscreen > footer { disp
 .source-pending[hidden]{display:none}
 .tabbed-properties{resize:both;min-width:280px;min-height:180px;max-width:calc(100vw - 24px)}
 .result-visibility.disabled-setting{opacity:.5;cursor:default}
+.source-conversion-status[hidden]{display:none}
+.region-settings .source-conversion-status{color:#a34e27;line-height:1.5}
