@@ -8,9 +8,11 @@
       "y": 416,
       "width": 380,
       "height": 150,
-      "latex": "\\mu=3.986004418\\cdot10^{14}",
+      "borderColor": "#718991",
       "source": "mu=3.986004418*10^14",
-      "borderColor": "#718991"
+      "latex": "\\mu=3.986004418\\cdot{10}^{14}",
+      "unitMode": "raw",
+      "equationMode": true
     },
     {
       "id": "1f9c4def-7e3e-45f7-b489-2a18f0b813bf",
@@ -19,8 +21,10 @@
       "y": 469,
       "width": 380,
       "height": 150,
-      "latex": "r=6371000+400000",
-      "source": "r=6371000+400000"
+      "source": "r=6371000+400000",
+      "latex": " r=6.371\\cdot10^{+6}+4\\cdot10^{+5}",
+      "unitMode": "raw",
+      "equationMode": true
     },
     {
       "id": "6b37a5d8-2d71-466a-b5e4-e92ff5e2c08c",
@@ -29,8 +33,10 @@
       "y": 507,
       "width": 380,
       "height": 150,
-      "latex": "v=\\sqrt{\\mu/r}=",
-      "source": "v=sqrt(mu/r)="
+      "source": "v=sqrt(mu/r)=",
+      "latex": " v=\\sqrt{\\frac{\\mu}{ r}}=",
+      "unitMode": "raw",
+      "equationMode": true
     },
     {
       "id": "f4a1756a-d926-44be-972e-8e9763c6f179",
@@ -39,9 +45,11 @@
       "y": 580,
       "width": 380,
       "height": 150,
-      "latex": "T=2\\pi\\sqrt{r^3/\\mu}=",
+      "backgroundColor": "#e6ffe5",
       "source": "T=2*pi*sqrt(r^3/mu)=",
-      "backgroundColor": "#e6ffe5"
+      "latex": "\\mathrm{T}=2\\cdot\\pi\\cdot\\sqrt{\\frac{{ r}^{3}}{\\mu}}=",
+      "unitMode": "raw",
+      "equationMode": true
     },
     {
       "id": "258a1b73-4f7b-4748-9cbe-803c69b53aee",
@@ -50,9 +58,6 @@
       "y": 247,
       "width": 757,
       "height": 267,
-      "series": "F_1(x*a)\nF_2(x/a)",
-      "min": "0",
-      "max": "10",
       "title": "Title of the plot",
       "xLabel": "x-axis label",
       "yLabel": "y-axis label",
@@ -66,7 +71,10 @@
         "yScale": 0.01229012716368429,
         "plotWidth": 553,
         "plotHeight": 179
-      }
+      },
+      "series": "F_1(x*a)\nF_2(x/a)",
+      "min": "0",
+      "max": "10"
     },
     {
       "id": "e654c517-dcf2-4eb7-a35a-e67a94b7d57c",
@@ -75,8 +83,8 @@
       "y": 27,
       "width": 552,
       "height": 328,
-      "text": "# Visual free form math editor\nThe system combines mathematical equations, text, images, and function plots on a single free form worksheet. Users can position content freely, define variables, work with units and matrices, and explore calculations with interactive sliders and animations.\n\nText uses markup notation for \n* easy and \n* quick access\n\n\nBuilt with Math.js, MathLive, Vite, and vanilla JavaScript, the editor runs entirely in the browser. Worksheets can be saved and loaded as JSON files, and the application is published through GitHub Pages.",
-      "manualSize": true
+      "manualSize": true,
+      "text": "# Visual free form math editor\nThe system combines mathematical equations, text, images, and function plots on a single free form worksheet. Users can position content freely, define variables, work with units and matrices, and explore calculations with interactive sliders and animations.\n\nText uses markup notation for \n* easy and \n* quick access\n\n\nBuilt with Math.js, MathLive, Vite, and vanilla JavaScript, the editor runs entirely in the browser. Worksheets can be saved and loaded as JSON files, and the application is published through GitHub Pages."
     },
     {
       "id": "01beadbc-ca1c-4cfd-aee9-bcbcbbf1bd4d",
@@ -99,9 +107,10 @@
       "y": 140,
       "width": 380,
       "height": 150,
-      "latex": "\\begin{array}{l}F_1\\left(x\\right)=\\sin\\left(x\\right)\\\\ F_2\\left(x\\right)=\\cos\\left(x\\right)\\end{array}",
-      "source": "F_1(x)=sin(x);F_2(x)=cos(x)",
-      "unitMode": "explicit"
+      "unitMode": "raw",
+      "source": "F_1(x)=sin(x); F_2(x)=cos(x)",
+      "latex": "\\begin{array}{l}\\mathrm{F_1}\\left(x\\right)=\\sin\\left( x\\right)\\\\\\mathrm{F_2}\\left(x\\right)=\\cos\\left( x\\right)\\end{array}",
+      "equationMode": true
     },
     {
       "id": "cf664f7a-180b-4693-8b9d-d787282e908e",
@@ -120,9 +129,9 @@
       "y": 663,
       "width": 607,
       "height": 67,
-      "text": "Write texts, define variables and function, make matrix algebra, design animations. ",
+      "backgroundColor": "#fff4cc",
       "manualSize": true,
-      "backgroundColor": "#fff4cc"
+      "text": "Write texts, define variables and function, make matrix algebra, design animations. "
     },
     {
       "id": "29cb8b14-9995-408b-bb11-77b397641c9d",
@@ -131,9 +140,10 @@
       "y": 362,
       "width": 380,
       "height": 150,
-      "latex": "\\alpha=12\\cdot\\htmlData{worksheet-unit=kg}{\\textcolor{#137f78}{\\mathrm{kg}}}",
+      "unitMode": "raw",
       "source": "alpha=12 * unit(\"kg\") ",
-      "unitMode": "explicit"
+      "latex": "\\alpha=12\\cdot\\htmlData{worksheet-unit=kg}{\\textcolor{#137f78}{\\mathrm{kg}}}",
+      "equationMode": true
     },
     {
       "id": "3cf37a10-4b23-4f4f-8ff6-65648e8574bf",
@@ -144,5 +154,11 @@
       "height": 150,
       "text": "Supports units "
     }
-  ]
+  ],
+  "canvas": {
+    "printArea": "off",
+    "zoom": 1,
+    "printScale": 1
+  },
+  "title": ""
 }
