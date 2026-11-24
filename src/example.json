@@ -100,7 +100,7 @@
       "width": 380,
       "height": 150,
       "latex": "\\begin{array}{l}F_1\\left(x\\right)=\\sin\\left(x\\right)\\\\ F_2\\left(x\\right)=\\cos\\left(x\\right)\\end{array}",
-      "source": "F_1(x)=sin(x);F_2(x)=cos(x)",
+      "source": "F_1(x)=sin(x);F_2(x)=cos(x)";,
       "unitMode": "explicit"
     },
     {
